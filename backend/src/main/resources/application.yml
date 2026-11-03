@@ -1,0 +1,67 @@
+spring:
+  application:
+    name: dreampet-backend
+  profiles:
+    # 默认本地开发（H2 文件库）。生产部署用 -Dspring.profiles.active=prod 或环境变量 SPRING_PROFILES_ACTIVE=prod
+    active: ${SPRING_PROFILES_ACTIVE:local}
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
+    time-zone: GMT+8
+    default-property-inclusion: non_null
+
+server:
+  port: ${PORT:8080}
+  compression:
+    enabled: true
+  shutdown: graceful
+
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+  global-config:
+    banner: false
+    db-config:
+      id-type: auto
+
+dreampet:
+  # 认证
+  auth:
+    # 生产环境务必通过环境变量 AUTH_SECRET 覆盖
+    secret: ${AUTH_SECRET:dreampet-local-dev-secret-change-me}
+    token-ttl-hours: 72
+  # CORS：静态托管域名与云托管域名不同，生产通过环境变量注入前端域名
+  cors:
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:*}
+  # 大模型（仅真实模式：OpenAI 兼容文本 API；未配置 Key 时接口返回 503）
+  llm:
+    api-key: ${LLM_API_KEY:}
+    base-url: ${LLM_BASE_URL:https://api.deepseek.com/v1}
+    model: ${LLM_MODEL:deepseek-chat}
+    connect-timeout-ms: 10000
+    # 云托管单请求时限通常较短，30s 超时更安全；超时与 5xx 会自动重试 1 次
+    read-timeout-ms: ${LLM_READ_TIMEOUT_MS:30000}
+    max-tokens: ${LLM_MAX_TOKENS:600}
+    temperature: 0.8
+  # 聊天相关
+  chat:
+    # 距上次聊天超过该分钟数后，进入聊天页会基于真实记忆生成「欢迎回来」
+    greeting-idle-minutes: ${GREETING_IDLE_MINUTES:30}
+    # 规则无法判断意图时，调用一次短 LLM 请求兜底（成本很低，可关闭）
+    intent-llm-enabled: ${INTENT_LLM_ENABLED:true}
+  # AI 调用限流（内存计数，单实例有效；防止公网刷调用）
+  rate-limit:
+    chat-per-hour: ${CHAT_RATE_LIMIT:40}
+    task-generate-per-hour: ${TASK_RATE_LIMIT:12}
+    intent-per-hour: ${INTENT_RATE_LIMIT:60}
+  # 成长数值（后端控制，AI 无权修改）
+  growth:
+    chat-exp: 2
+    chat-exp-daily-cap: 20
+    create-pet-exp: 10
+    task-reward-min: 5
+    task-reward-max: 30
+
+logging:
+  level:
+    com.dreampet: INFO
+    # 绝不打印 API Key；LlmService 日志已做脱敏

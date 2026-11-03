@@ -1,0 +1,21 @@
+spring:
+  datasource:
+    url: "jdbc:h2:mem:testdb;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE"
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: ""
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:db/schema-h2.sql
+
+dreampet:
+  chat:
+    # 测试中取消 30 分钟等待，便于验证「欢迎回来」记忆问候路径
+    greeting-idle-minutes: 0
+    # 测试使用规则意图识别，避免额外的模型调用
+    intent-llm-enabled: false
+
+logging:
+  level:
+    com.dreampet: INFO

@@ -1,0 +1,197 @@
+# DreamPet · AI 梦想养成伙伴
+
+> 每一次陪伴，都是一次成长。
+
+DreamPet 是面向 **6~10 岁儿童**的 AI 虚拟伙伴与创意成长陪伴平台。孩子创建一个属于自己的伙伴，和它自由聊天、一起做趣味小任务、记录成长，伙伴会记住共同经历并逐渐长大。
+
+**核心三件事：长期记忆 · 主动陪伴 · 成长反馈。**
+
+- 仅使用**真实文本大模型**（OpenAI 兼容接口）；**不调用任何图片生成、语音合成、语音识别模型**
+- 宠物形象 = 用户提供的 5 个冬装角色素材（已抠图为透明 PNG，本地存放）+ CSS 动画（5 种物种 × 4 个成长阶段），不依赖外链图片
+- **意图识别**：规则优先 + 大模型兜底，驱动任务推荐、回忆、情绪安抚等回应策略
+- **儿童安全**：自伤、被欺凌、想伤害他人、危险行为等由代码级规则先行拦截并给出引导话术
+- **失败可观测**：模型超时 / 限流 / 认证失败 / 未配置 Key 均返回明确错误码与儿童友好提示
+- 后端掌控等级/经验/奖励，AI 只负责语言与任务创意
+- 为 **CloudBase 免费体验版**设计：无 Redis/Kafka 等中间件，支持小内存容器与静态托管
+
+## 界面预览
+
+<p align="center">
+  <img src="docs/images/welcome.png" width="49%" alt="欢迎登录页" />
+  <img src="docs/images/home.png" width="49%" alt="伙伴主页" />
+</p>
+
+<p align="center">
+  <img src="docs/images/growth.png" width="66%" alt="成长档案：本周小结与成就徽章" />
+</p>
+
+## 目录
+
+- [功能一览](#功能一览)
+- [技术栈](#技术栈)
+- [本地启动](#本地启动)
+- [环境变量](#环境变量)
+- [测试与验证](#测试与验证)
+- [项目结构](#项目结构)
+- [文档](#文档)
+- [儿童安全与隐私](#儿童安全与隐私)
+- [部署状态](#部署状态)
+
+## 功能一览
+
+| 模块 | 说明 |
+|---|---|
+| 创建伙伴 | 5 种物种、名字、性格；不预选兴趣，话题由聊天自然产生；设置中可随时更换物种，成长与记忆保留 |
+| AI 聊天 | 结合伙伴性格、聊天中形成的话题记忆、当前任务自由对话（想聊什么都可以） |
+| 意图识别 | 11 类意图（打招呼/兴趣/梦想/任务/回忆/情绪/提问等），影响任务推荐与回应策略 |
+| 今日任务 | TaskAgent 按聊天话题生成；结构化校验 + 服务端奖励截断；待办任务可置为进行中 |
+| 成长系统 | 任务/聊天获得经验 → 升级 → 4 个成长阶段 → 成长动画 |
+| 成就与周报 | 8 枚成就徽章（初次相遇、探索小达人等）+ 本周小结（聊天/任务/经验/互动天数） |
+| 成长日记 | 按天聚合的「每日回顾」（聊天次数/任务数/经验/高光）、重要记忆、对话摘要 |
+| 长期记忆 | 话题/事件/画像/任务/摘要五层记忆，重启不丢 |
+| 儿童安全 | 代码级安全分类 + 输入输出双向过滤 + 隐私提醒 + 危险话题引导求助 |
+| 失败处理 | 超时/限流/认证/未配置 结构化错误码（502/503/504）+ 友好提示 + 自动重试 1 次 |
+| 部署与保护 | `/api/health` 健康检查、每用户每小时 AI 调用限流（429）、小实例内存/连接池调优、PWA 安装 |
+| 账号与登录 | 登录 / 注册 / 一键体验；设置页顶部与账号卡片均可退出登录（二次确认，数据保留） |
+| 数据隔离 | 所有查询强制 user_id，账号可一键删除全部数据 |
+
+## 技术栈
+
+| 层 | 选型 |
+|---|---|
+| 前端 | Vue 3 + TypeScript + Vite + Pinia + Vue Router（hash 模式）+ SCSS + Axios |
+| 后端 | Java 17 + Spring Boot 3.3 + MyBatis-Plus 3.5 |
+| 数据库 | 本地 H2 文件库（PostgreSQL 兼容）/ 生产 CloudBase PostgreSQL |
+| AI | 真实 OpenAI 兼容文本大模型（DeepSeek / 智谱 / Moonshot 等） |
+| 部署 | CloudBase 云托管（后端，Docker）+ 静态网站托管（前端） |
+
+## 本地启动
+
+**环境**：JDK 17、Maven 3.9+、Node 18+（推荐 20+）。
+
+```bash
+# 1. 启动后端（真实 AI 模式，H2 文件库，端口 8080）
+export LLM_API_KEY=你的Key          # Windows CMD: set LLM_API_KEY=你的Key
+cd backend
+mvn spring-boot:run
+# 或 Windows: scripts\start-backend.bat   /  macOS·Linux: bash scripts/start-backend.sh
+
+# 2. 启动前端（端口 5173）
+cd frontend
+npm install
+npm run dev
+```
+
+打开 http://localhost:5173 → 一键体验 → 创建伙伴。
+
+- 健康检查：`GET http://localhost:8080/api/health` → `{"status":"ok","db":"up"}`
+- 演示「重新进入记得你」：后端加 `GREETING_IDLE_MINUTES=0` 启动，欢迎语会立即触发
+- 数据默认保存在 `backend/data/`，重启不丢失；删除该目录即可清空本地数据
+
+**生产构建（静态托管）**：前后端不同域，必须注入后端地址；已使用 hash 路由，无需配置 404 回退。
+
+```bash
+cd frontend
+VITE_API_BASE=https://<云托管后端域名>/api npm run build
+```
+
+## 环境变量
+
+完整模板见 [`.env.example`](.env.example) 与 [`frontend/.env.example`](frontend/.env.example)。
+
+| 变量 | 必填 | 说明 |
+|---|---|---|
+| `LLM_API_KEY` | 是 | 文本大模型 Key，仅存后端环境变量 |
+| `LLM_BASE_URL` / `LLM_MODEL` | 是 | OpenAI 兼容地址与模型名 |
+| `LLM_READ_TIMEOUT_MS` / `LLM_MAX_TOKENS` | 否 | 默认 30000 / 600 |
+| `AUTH_SECRET` | 是 | Token 签名密钥，生产务必替换 |
+| `CORS_ALLOWED_ORIGINS` | 是 | 生产填写前端静态托管域名 |
+| `GREETING_IDLE_MINUTES` | 否 | 欢迎语空闲阈值，默认 30 |
+| `INTENT_LLM_ENABLED` | 否 | 意图识别 LLM 兜底；生产默认关闭 |
+| `CHAT_RATE_LIMIT` / `TASK_RATE_LIMIT` | 否 | 每用户每小时 AI 调用上限，默认 40 / 12 |
+| `SPRING_PROFILES_ACTIVE` | 否 | `local`（默认）/ `prod` |
+| `DB_HOST` / `DB_PORT` / `DB_NAME` / `DB_USER` / `DB_PASSWORD` | prod | CloudBase PostgreSQL 连接信息 |
+| `VITE_API_BASE` | 构建时 | 前端 API 地址；本地 `/api`，生产填后端域名 |
+
+> AI 失败统一转换为结构化响应：未配置 Key → 503；认证失败/上游异常 → 502；超时 → 504；触发用户频率限制 → 429。
+
+## 测试与验证
+
+```bash
+# 后端测试（H2 内存库 + 测试专用确定性客户端，不调用外部模型、不产生费用）
+cd backend && mvn test
+
+# 端到端冒烟（使用真实 AI，需要 LLM_API_KEY）
+SAVE_TOKEN_FILE=/tmp/dreampet-token.txt node scripts/smoke-test.mjs
+
+# 意图识别演示
+node scripts/intent-demo.mjs /tmp/dreampet-token.txt
+
+# 重启后端后验证伙伴/记忆/任务持久化
+node scripts/verify-restart.mjs /tmp/dreampet-token.txt
+```
+
+当前结果：后端 **20 项测试全部通过**，前端类型检查与生产构建通过，真实 AI 聊天/任务/反馈、安全引导、重启持久化均已实测。详见 [测试报告](docs/TEST-REPORT.md)。
+
+## 项目结构
+
+```
+dream-pet/
+├── backend/                       Spring Boot 后端
+│   ├── src/main/java/com/dreampet/
+│   │   ├── agent/                 CompanionAgent / TaskAgent / MemoryManager / SafetyGuard / IntentRecognizer
+│   │   ├── controller/            REST 接口（认证/伙伴/聊天/任务/成长/记忆/健康检查）
+│   │   ├── service/               Auth / Pet / Chat / Task / Growth / Memory / Achievement / RateLimit
+│   │   ├── llm/                   LlmService + OpenAI 兼容客户端 + 结构化错误
+│   │   ├── entity/ mapper/ dto/ config/ common/ util/
+│   │   └── resources/db/          schema-h2.sql / schema-postgres.sql
+│   ├── src/test/                  集成测试 / 意图 / 安全 / 限流 / LLM 单测
+│   └── Dockerfile                 云托管镜像
+├── frontend/                      Vue 3 + TypeScript 前端
+│   ├── src/views/                 欢迎/创建/首页/聊天/任务/成长/日记/设置
+│   ├── src/components/            宠物形象、成长条、任务卡、升级动画等
+│   ├── src/stores/ api/ router/   状态、接口、hash 路由
+│   ├── src/assets/pets/           5 个透明角色素材（PNG）
+│   └── public/                    PWA manifest / sw.js / icons
+├── docs/                          架构 / API / 数据库 / 记忆 / 部署 / 演示 / 测试报告
+│   ├── images/                    README 截图
+│   └── assets/                    角色素材源图
+├── scripts/                       启动脚本 + 冒烟 / 意图 / 重启验证脚本
+├── .env.example                   环境变量模板（无真实密钥）
+└── README.md
+```
+
+## 文档
+
+- [技术架构](docs/ARCHITECTURE.md)
+- [API 契约](docs/API.md)
+- [数据库设计](docs/DATABASE.md)
+- [长期记忆实现](docs/MEMORY.md)
+- [CloudBase 部署说明](docs/DEPLOYMENT.md)
+- [比赛演示脚本](docs/DEMO-GUIDE.md)
+- [测试与验收报告](docs/TEST-REPORT.md)
+
+## 儿童安全与隐私
+
+- 不收集真实姓名、学校、住址、联系方式；不要求上传照片
+- **代码级安全分类**：自伤/自杀、被虐待、被欺凌、想伤害他人、危险行为、成人内容、隐私信息；
+  命中后由 `SafetyGuard` 直接返回经过设计的引导话术，不依赖大模型即兴发挥
+- 想欺负别人：先共情情绪，明确「不能伤害别人」的边界，建议冷静并告诉可信任的大人
+- 自伤/被伤害：优先安抚，强烈建议立即找家长/老师，必要时拨打 110/120，并说明 AI 不能替代真人
+- 输出侧再做一次拦截，避免模型输出伤害方法；安全日志只记录分类、不记录孩子原话
+- 已有防误伤测试：正常表达（如「我想打篮球」「笑死我了」「玩火影忍者」）不会被拦截
+- 不设计签到惩罚与消费诱导；聊天仅本人可见；账号数据可删除；API Key 不写在日志中
+
+## 部署状态
+
+- ✅ 代码、数据库脚本、真实 AI 完整演示流程、部署文件与文档已完成
+- ✅ 后端测试（20 项）、前端构建、端到端冒烟、重启持久化验证全部通过
+- ✅ 部署前加固：API 地址可配置、hash 路由、健康检查、AI 限流、小实例资源参数、PWA
+- ⏳ **尚未部署到 CloudBase**（等待账号授权与人工操作，步骤见 [部署说明](docs/DEPLOYMENT.md)）
+- 需要手动完成：创建 CloudBase 免费环境 → 启用 PostgreSQL → 云托管部署后端（配置环境变量）→ 静态托管上传前端 → 配置 CORS
+- 运行需要一家文本大模型供应商的 API Key（本机已使用 `DEEPSEEK_API_KEY` 联调通过）
+- 已知限制：Docker 镜像未在本机构建验证（引擎未启动）；UI 已截图检查但未做真人可用性测试；对话摘要需累计 ≥20 条消息后生成
+
+---
+
+本项目为学院 AI 创新比赛作品。所有宠物形象与界面素材均为本地静态资源，运行时不调用任何图片/语音生成模型。
