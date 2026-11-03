@@ -1,8 +1,11 @@
 # DreamPet CloudBase 部署指南（免费体验版）
 
-> ⚠️ 当前项目**尚未实际部署**。以下步骤需要你本人登录 CloudBase 账号操作；涉及账号授权与资源点消耗，请勿购买付费套餐或开启自动超额付费。
+> ℹ️ **当前实际部署（2026-11-03）已改在已有阿里云服务器上完成**，访问地址：
+> `http://8.134.105.111/dreampet/`。具体步骤见文末「11. 阿里云服务器部署（当前采用）」。
 >
-> 目标架构：**前端静态托管 + 后端云托管（Docker）+ CloudBase PostgreSQL**，全部在 1 个免费体验环境中。
+> 下面第 1–10 节保留为 **CloudBase 备选方案**。如需改用 CloudBase，请勿购买付费套餐或开启自动超额付费。
+
+> 目标架构（CloudBase 方案）：**前端静态托管 + 后端云托管（Docker）+ CloudBase PostgreSQL**，全部在 1 个免费体验环境中。
 
 ## 0. 前置信息（2026-11 核实）
 
@@ -178,3 +181,51 @@ tcb hosting deploy dist -e <环境ID>
 3. 在云托管配置环境变量（尤其是 `AUTH_SECRET`、`CORS_ALLOWED_ORIGINS`、`LLM_API_KEY`）；
 4. 获取后端域名后构建前端并上传静态托管；
 5. 可选：`tcb login` 后由 CLI 协助上传。
+
+## 11. 阿里云服务器部署（当前采用）
+
+访问地址：**http://8.134.105.111/dreampet/**
+
+服务器为 Ubuntu 24.04（2 vCPU / 1.7G 内存），已有 `software-market` 服务占用 80 和 8080 端口，DreamPet 以独立服务并行部署，互不影响。
+
+### 11.1 部署形态
+
+| 组件 | 位置 / 说明 |
+|---|---|
+| 前端静态文件 | `/opt/dreampet/www/dreampet/` |
+| 后端 jar | `/opt/dreampet/app.jar`（Java 17，端口 8082，仅监听 127.0.0.1） |
+| 数据库 | H2 文件库 `/opt/dreampet/data/dreampet.mv.db` |
+| 环境变量 | `/opt/dreampet/dreampet.env`（600，含 AUTH_SECRET / LLM Key，勿提交仓库） |
+| systemd 服务 | `dreampet.service` |
+| Nginx | `/etc/nginx/snippets/dreampet.conf`，挂载在 80 端口的 `/dreampet/` 子路径 |
+| 原项目配置备份 | `/root/nginx-default.backup-*` |
+
+### 11.2 常用运维命令
+
+```bash
+systemctl status dreampet
+systemctl restart dreampet
+journalctl -u dreampet -f
+curl http://127.0.0.1:8082/api/health
+nginx -t && systemctl reload nginx
+```
+
+### 11.3 更新发布
+
+```bash
+# 本机（Windows Git Bash 需要关闭路径转换）
+cd backend && mvn -q -DskipTests package
+cd ../frontend && MSYS_NO_PATHCONV=1 VITE_BASE=/dreampet/ VITE_API_BASE=/dreampet/api npm run build
+
+scp backend/target/dreampet-backend-1.0.0.jar root@8.134.105.111:/opt/dreampet/app.jar
+tar -C frontend/dist -czf /tmp/dreampet-dist.tar.gz .
+scp /tmp/dreampet-dist.tar.gz root@8.134.105.111:/tmp/
+ssh root@8.134.105.111 'tar -xzf /tmp/dreampet-dist.tar.gz -C /opt/dreampet/www/dreampet && chown -R www-data:www-data /opt/dreampet && systemctl restart dreampet'
+```
+
+### 11.4 注意事项
+
+- **不要修改** `/etc/nginx/sites-available/default` 的根路径与原有 `location`，DreamPet 只通过 `/dreampet/` 前缀接入；改动前先备份并执行 `nginx -t`。
+- 后端使用 `local` profile + H2 文件库，适合比赛演示；如需真正生产化，可加装 PostgreSQL 并切换到 `prod` profile。
+- 当前服务器资源较紧（1.7G 内存），DreamPet JVM 限制为 `-Xmx384m`；演示结束可 `systemctl stop dreampet` 释放内存。
+- 8082 已绑定 127.0.0.1，外部只能通过 Nginx 的 `/dreampet/api/` 访问。

@@ -1,6 +1,7 @@
 /* DreamPet 轻量 PWA：缓存应用外壳，API 请求不缓存 */
-const CACHE = 'dreampet-shell-v1'
-const SHELL = ['/', '/index.html', '/manifest.webmanifest']
+const CACHE = 'dreampet-shell-v2'
+const BASE = new URL('./', self.location.href).pathname
+const SHELL = [BASE, `${BASE}index.html`, `${BASE}manifest.webmanifest`]
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -26,10 +27,10 @@ self.addEventListener('fetch', (event) => {
   if (request.method !== 'GET') return
   const url = new URL(request.url)
   if (url.origin !== self.location.origin) return
-  if (url.pathname.startsWith('/api')) return
+  if (url.pathname.startsWith(`${BASE}api`)) return
 
   if (request.mode === 'navigate') {
-    event.respondWith(fetch(request).catch(() => caches.match('/index.html')))
+    event.respondWith(fetch(request).catch(() => caches.match(`${BASE}index.html`)))
     return
   }
 

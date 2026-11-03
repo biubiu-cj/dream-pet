@@ -6,13 +6,15 @@ DreamPet 是面向 **6~10 岁儿童**的 AI 虚拟伙伴与创意成长陪伴平
 
 **核心三件事：长期记忆 · 主动陪伴 · 成长反馈。**
 
+**在线体验：<http://8.134.105.111/dreampet/>**（已部署在阿里云服务器）
+
 - 仅使用**真实文本大模型**（OpenAI 兼容接口）；**不调用任何图片生成、语音合成、语音识别模型**
 - 宠物形象 = 用户提供的 5 个冬装角色素材（已抠图为透明 PNG，本地存放）+ CSS 动画（5 种物种 × 4 个成长阶段），不依赖外链图片
 - **意图识别**：规则优先 + 大模型兜底，驱动任务推荐、回忆、情绪安抚等回应策略
 - **儿童安全**：自伤、被欺凌、想伤害他人、危险行为等由代码级规则先行拦截并给出引导话术
 - **失败可观测**：模型超时 / 限流 / 认证失败 / 未配置 Key 均返回明确错误码与儿童友好提示
 - 后端掌控等级/经验/奖励，AI 只负责语言与任务创意
-- 为 **CloudBase 免费体验版**设计：无 Redis/Kafka 等中间件，支持小内存容器与静态托管
+- 面向 **低配环境**设计：无 Redis/Kafka 等中间件，单机小内存即可运行；当前部署在阿里云 2C/1.7G 服务器，CloudBase 免费版为备选方案
 
 ## 界面预览
 
@@ -61,9 +63,9 @@ DreamPet 是面向 **6~10 岁儿童**的 AI 虚拟伙伴与创意成长陪伴平
 |---|---|
 | 前端 | Vue 3 + TypeScript + Vite + Pinia + Vue Router（hash 模式）+ SCSS + Axios |
 | 后端 | Java 17 + Spring Boot 3.3 + MyBatis-Plus 3.5 |
-| 数据库 | 本地 H2 文件库（PostgreSQL 兼容）/ 生产 CloudBase PostgreSQL |
+| 数据库 | H2 文件库（PostgreSQL 兼容，当前线上使用）/ 可选 CloudBase PostgreSQL |
 | AI | 真实 OpenAI 兼容文本大模型（DeepSeek / 智谱 / Moonshot 等） |
-| 部署 | CloudBase 云托管（后端，Docker）+ 静态网站托管（前端） |
+| 部署 | 当前：阿里云服务器 Nginx + systemd + H2；备选：CloudBase 云托管 + 静态托管 + PostgreSQL |
 
 ## 本地启动
 
@@ -88,11 +90,17 @@ npm run dev
 - 演示「重新进入记得你」：后端加 `GREETING_IDLE_MINUTES=0` 启动，欢迎语会立即触发
 - 数据默认保存在 `backend/data/`，重启不丢失；删除该目录即可清空本地数据
 
-**生产构建（静态托管）**：前后端不同域，必须注入后端地址；已使用 hash 路由，无需配置 404 回退。
+**生产构建**：`VITE_API_BASE` 注入 API 地址，`VITE_BASE` 注入部署子路径；项目使用 hash 路由，无需配置 404 回退。
 
 ```bash
+# 当前阿里云部署（Nginx 子路径 /dreampet/）
 cd frontend
-VITE_API_BASE=https://<云托管后端域名>/api npm run build
+MSYS_NO_PATHCONV=1 VITE_BASE=/dreampet/ VITE_API_BASE=/dreampet/api npm run build
+# Windows PowerShell:
+# $env:VITE_BASE="/dreampet/"; $env:VITE_API_BASE="/dreampet/api"; npm run build
+
+# CloudBase / 独立域名部署
+VITE_API_BASE=https://<后端域名>/api npm run build
 ```
 
 ## 环境变量
@@ -111,7 +119,8 @@ VITE_API_BASE=https://<云托管后端域名>/api npm run build
 | `CHAT_RATE_LIMIT` / `TASK_RATE_LIMIT` | 否 | 每用户每小时 AI 调用上限，默认 40 / 12 |
 | `SPRING_PROFILES_ACTIVE` | **部署必传** | `local`（默认）/ `prod`。生产漏传会被启动自检拦截（见下） |
 | `DB_HOST` / `DB_PORT` / `DB_NAME` / `DB_USER` / `DB_PASSWORD` | prod | CloudBase PostgreSQL 连接信息 |
-| `VITE_API_BASE` | 构建时 | 前端 API 地址；本地 `/api`，生产填后端域名 |
+| `VITE_API_BASE` | 构建时 | 前端 API 地址；本地 `/api`，当前线上 `/dreampet/api` |
+| `VITE_BASE` | 构建时 | 前端部署路径；根路径 `/`，当前线上 `/dreampet/` |
 
 > AI 失败统一转换为结构化响应：未配置 Key → 503；认证失败/上游异常 → 502；超时 → 504；触发用户频率限制 → 429。
 
@@ -149,7 +158,7 @@ node scripts/intent-demo.mjs /tmp/dreampet-token.txt
 node scripts/verify-restart.mjs /tmp/dreampet-token.txt
 ```
 
-当前结果：后端 **108 项测试全部通过**，前端类型检查与生产构建通过，真实 AI 聊天/任务/反馈、安全引导、重启持久化均已实测。详见 [测试报告](docs/TEST-REPORT.md)。
+当前结果：后端 **108 项测试全部通过**，前端类型检查与生产构建通过，真实 AI 聊天/任务/反馈、安全引导、重启持久化均已实测。线上部署完成后再次通过了端到端冒烟、桌面（1440px）与移动端（390px）浏览器渲染检查，控制台 0 报错。详见 [测试报告](docs/TEST-REPORT.md)。
 
 ## 项目结构
 
@@ -185,7 +194,7 @@ dream-pet/
 - [API 契约](docs/API.md)
 - [数据库设计](docs/DATABASE.md)
 - [长期记忆实现](docs/MEMORY.md)
-- [CloudBase 部署说明](docs/DEPLOYMENT.md)
+- [部署说明（阿里云实际部署 + CloudBase 备选）](docs/DEPLOYMENT.md)
 - [比赛演示脚本](docs/DEMO-GUIDE.md)
 - [测试与验收报告](docs/TEST-REPORT.md)
 
@@ -202,13 +211,18 @@ dream-pet/
 
 ## 部署状态
 
-- ✅ 代码、数据库脚本、真实 AI 完整演示流程、部署文件与文档已完成
-- ✅ 后端测试（108 项）、前端构建、端到端冒烟、重启持久化验证全部通过
-- ✅ 部署前加固：API 地址可配置、hash 路由、健康检查、AI 限流、小实例资源参数、PWA
-- ⏳ **尚未部署到 CloudBase**（等待账号授权与人工操作，步骤见 [部署说明](docs/DEPLOYMENT.md)）
-- 需要手动完成：创建 CloudBase 免费环境 → 启用 PostgreSQL → 云托管部署后端（配置环境变量）→ 静态托管上传前端 → 配置 CORS
-- 运行需要一家文本大模型供应商的 API Key（本机已使用 `DEEPSEEK_API_KEY` 联调通过）
-- 已知限制：Docker 镜像未在本机构建验证（引擎未启动）；UI 已截图检查但未做真人可用性测试；对话摘要需累计 ≥20 条消息后生成
+**在线地址：<http://8.134.105.111/dreampet/>**
+
+- ✅ **已部署到阿里云服务器**（Ubuntu 24.04，2 vCPU / 1.7G 内存）
+  - Nginx 80 端口 `/dreampet/` 子路径提供前端静态文件
+  - Spring Boot 后端监听 `127.0.0.1:8082`，由 Nginx 反向代理 `/dreampet/api/`
+  - H2 文件库持久化，服务由 systemd 管理（`dreampet.service`）
+- ✅ 线上验证通过：端到端真实 AI 冒烟、桌面/移动端渲染、聊天发送、新对话、重启持久化、健康检查
+- ✅ 后端测试（108 项）、前端构建、真实 AI 完整演示流程全部通过
+- ✅ 部署加固：API 地址与子路径可配置、hash 路由、健康检查、AI 限流、小实例资源参数、PWA
+- CloudBase 方案（云托管 + PostgreSQL + 静态托管）保留为备选，步骤见 [部署说明](docs/DEPLOYMENT.md)
+- 运行需要一家文本大模型供应商的 API Key，密钥仅存放在服务器环境变量中
+- 已知限制：当前为 HTTP 访问，PWA 安装/离线缓存需 HTTPS 才会生效；UI 已做桌面与移动截图检查，未做真人可用性测试；对话摘要需累计 ≥20 条消息后生成
 
 ---
 
