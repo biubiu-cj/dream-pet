@@ -39,3 +39,5 @@ Thumbs.db
 .box-agent-scratch/
 /cover.png
 /poster.png
+# 根目录的本地 UI 审查截图（应用素材在 frontend/src/assets，正式物料在 docs/）
+/*.png
