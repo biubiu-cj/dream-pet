@@ -4,7 +4,8 @@
 #   DB_HOST / DB_PORT / DB_NAME / DB_USER / DB_PASSWORD
 spring:
   datasource:
-    url: jdbc:postgresql://${DB_HOST}:${DB_PORT:5432}/${DB_NAME}
+    # 如 CloudBase 直连要求 SSL，可在 DB_PARAMS 中追加 ?sslmode=require 等参数
+    url: jdbc:postgresql://${DB_HOST}:${DB_PORT:5432}/${DB_NAME}${DB_PARAMS:}
     driver-class-name: org.postgresql.Driver
     username: ${DB_USER}
     password: ${DB_PASSWORD}

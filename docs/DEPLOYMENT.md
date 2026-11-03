@@ -1,126 +1,180 @@
-# DreamPet CloudBase 部署说明
+# DreamPet CloudBase 部署指南（免费体验版）
 
-> ⚠️ **当前项目尚未实际部署**。本地开发与真实 AI 验证已就绪，以下为在腾讯云 CloudBase 上人工部署的完整步骤。
-> 部署涉及你的账号授权与（可能的）少量费用，请在本人操作并确认后再执行。
+> ⚠️ 当前项目**尚未实际部署**。以下步骤需要你本人登录 CloudBase 账号操作；涉及账号授权与资源点消耗，请勿购买付费套餐或开启自动超额付费。
+>
+> 目标架构：**前端静态托管 + 后端云托管（Docker）+ CloudBase PostgreSQL**，全部在 1 个免费体验环境中。
 
 ## 0. 前置信息（2026-11 核实）
 
 | 项目 | 说明 |
 |---|---|
-| 免费体验版 | 1 个环境，3000 资源点/月（≈ ¥3）；需兑换码创建；分享可 0 元续 6 个月 |
-| 数据库 | **MySQL 自 2026-10-20 起停止新启用**；使用 **CloudBase PostgreSQL** |
-| 云托管 | 支持 Spring Boot 容器部署；提供内网直连 PostgreSQL |
-| 静态托管 | 部署 `frontend/dist` 构建产物 |
-| 成本 | 不购买套餐、不开启自动超额付费；超出免费额度会消耗资源点，需自行监控 |
+| 免费体验版 | 1 个环境，约 3000 资源点/月（≈¥3）；需兑换码创建；分享可 0 元续 6 个月 |
+| 数据库 | MySQL 自 2026-10-20 起停止新启用；本项目使用 **CloudBase PostgreSQL** |
+| 云托管 | 支持 Spring Boot 容器部署（项目已提供 `backend/Dockerfile`），端口 **8080** |
+| 静态托管 | 上传 `frontend/dist`；项目使用 hash 路由，无需配置 404 回退 |
+| 成本 | 云托管实例、PostgreSQL、静态流量都会消耗资源点；演示结束请停用服务 |
 
-## 1. 创建环境
+## 1. 部署顺序总览（照着打勾）
+
+1. 创建免费体验环境（记录环境 ID）
+2. **先启用静态网站托管**，拿到默认域名（后面要用作后端 CORS）
+3. 启用 PostgreSQL、记录直连信息、执行建表 SQL
+4. 云托管部署后端，配置环境变量与健康检查
+5. 用后端域名构建前端，上传 `dist` 到静态托管
+6. 验证全流程；首次建表后把 `DB_INIT_MODE` 改回 `never`
+
+> 为什么先启用静态托管：后端的启动安全自检要求 `CORS_ALLOWED_ORIGINS` 是明确域名，不能为空或 `*`。先拿到静态域名再部署后端，可以一次通过。
+
+## 2. 创建环境
 
 1. 登录 [CloudBase 控制台](https://tcb.cloud.tencent.com/)；
 2. 使用免费体验版兑换码创建「个人版」环境；
-3. 记录 **环境 ID**（后续上传前端 / CLI 部署使用）。
+3. 记录 **环境 ID**（CLI 上传前端时需要）。
 
-## 2. 启用 PostgreSQL 并建表
+## 3. 启用静态网站托管（先拿域名）
 
-1. 控制台 → 数据库 → PostgreSQL → 初始化（记录数据库名、用户名、密码）；
-2. 开启「直连服务」，获取 **内网地址 + 端口(5432)**（云托管内网访问；本地调试可用公网地址）；
-3. 执行建表脚本 `backend/src/main/resources/db/schema-postgres.sql`（可用 PG 控制台 SQL 窗口或 `psql`）。
-   脚本可重复执行；已有旧库升级时同样执行一次，其中包含 `ALTER TABLE chat_messages ADD COLUMN IF NOT EXISTS message_type ...`。
+1. 控制台 → 静态网站托管 → 开通；
+2. 复制默认访问域名（形如 `https://<env-id>.tcloudbaseapp.com`，以控制台显示为准）；
+3. 先不用上传文件，第 6 步再上传。
 
-## 3. 部署后端（云托管）
+## 4. 启用 PostgreSQL 并建表
 
-**方式 A：代码包部署（最简单）**
+1. 控制台 → 数据库 → PostgreSQL → 初始化，记录：**数据库名、用户名、密码**；
+2. 找到连接信息：**主机地址、端口（默认 5432）**。云托管访问建议使用内网/直连地址；
+3. 在 PostgreSQL 的 SQL 控制台执行 `backend/src/main/resources/db/schema-postgres.sql`。
+   - 脚本可重复执行；旧库升级也会自动补 `message_type` 列；
+   - 如果控制台要求 SSL，给后端加 `DB_PARAMS=?sslmode=require`（见下一节）。
 
-1. 本地构建：`cd backend && mvn clean package -DskipTests`；
-2. 云托管 → 新建服务 → 上传代码包 → 选择 `backend/` 目录（含 Dockerfile）；
-3. 端口填写 **8080**；
-4. 配置环境变量（见下表）；
-5. 部署完成后拿到后端访问域名，供前端配置。
+## 5. 部署后端（云托管）
 
-**方式 B：本地 Docker 验证后推送镜像**
+### 5.1 上传代码
 
-```bash
-cd backend
-docker build -t dreampet-backend:latest .
-# 显式 -e 覆盖任何本地 env 文件中的 profile，避免误用 local/H2
-docker run -p 8080:8080 -e SPRING_PROFILES_ACTIVE=prod --env-file ../.env dreampet-backend:latest
-```
+1. 控制台 → 云托管 → 新建服务；
+2. 部署方式选「**上传代码包**」→ 代码包类型选「**文件夹**」；
+3. 选择本地 `backend/` 目录（必须包含 `Dockerfile`）；
+4. 端口填写 **8080**（项目镜像默认监听 8080）。
 
-> 镜像已默认 `SPRING_PROFILES_ACTIVE=prod`；但如果 `--env-file` 里写了 `local`，会覆盖镜像默认值并退回 H2。
-> 因此上面显式加了 `-e SPRING_PROFILES_ACTIVE=prod`。部署用的 env 文件建议直接从仓库模板复制后删除/注释 `SPRING_PROFILES_ACTIVE=local`。
+### 5.2 健康检查
 
-**环境变量清单：**
+- 健康检查路径填 **`/api/health`**（会检查数据库连接）；
+- 如果控制台只允许探测根路径，项目已提供 `GET /` 返回 200，可直接使用。
+
+> 首次访问可能冷启动较慢，部署完成后先访问一次 `/api/health` 预热。
+
+### 5.3 环境变量（密钥只放这里，绝不写进仓库）
 
 | 变量 | 必填 | 示例 / 说明 |
 |---|---|---|
-| SPRING_PROFILES_ACTIVE | 是 | `prod`（Dockerfile 已默认 prod，仍建议在控制台显式设置） |
-| DB_HOST / DB_PORT / DB_NAME / DB_USER / DB_PASSWORD | 是 | PostgreSQL 内网连接信息 |
-| DB_INIT_MODE | 否 | 首次可设 `always` 自动建表，之后改 `never` |
-| LLM_API_KEY / LLM_BASE_URL / LLM_MODEL | 是 | 仅真实文本大模型，绝不写进前端或 Git |
-| LLM_READ_TIMEOUT_MS | 否 | 读超时，默认 30000；超时自动重试 1 次 |
-| LLM_MAX_TOKENS | 否 | 单次回复上限，默认 600 |
-| INTENT_LLM_ENABLED | 否 | 生产默认 `false`（规则意图识别，省调用） |
-| CHAT_RATE_LIMIT / TASK_RATE_LIMIT | 否 | 每用户每小时聊天/任务生成上限，默认 40 / 12 |
-| GREETING_IDLE_MINUTES | 否 | 「欢迎回来」空闲阈值，默认 30 |
-| AUTH_SECRET | 是 | 32 位以上随机字符串 |
-| CORS_ALLOWED_ORIGINS | 是 | 前端静态托管域名（多个用逗号分隔） |
-| PORT | 否 | 默认 8080 |
+| `SPRING_PROFILES_ACTIVE` | 是 | `prod`（镜像已默认，仍建议显式设置） |
+| `DB_HOST` | 是 | PostgreSQL 直连主机地址 |
+| `DB_PORT` | 否 | 默认 `5432` |
+| `DB_NAME` / `DB_USER` / `DB_PASSWORD` | 是 | PostgreSQL 信息 |
+| `DB_PARAMS` | 否 | 如 `?sslmode=require`；不需要则留空 |
+| `DB_INIT_MODE` | 否 | **首次部署设为 `always`**，建表成功后改回 `never` |
+| `AUTH_SECRET` | 是 | 32 位以上随机字符串，例如 `openssl rand -hex 32` 或 `python -c "import secrets;print(secrets.token_hex(32))"` |
+| `CORS_ALLOWED_ORIGINS` | 是 | 静态托管域名，如 `https://<env-id>.tcloudbaseapp.com`（不要带结尾斜杠，不要用 `*`） |
+| `LLM_API_KEY` | 是 | 文本大模型 Key（DeepSeek 等） |
+| `LLM_BASE_URL` | 是 | 如 `https://api.deepseek.com/v1` |
+| `LLM_MODEL` | 是 | 如 `deepseek-chat` |
+| `LLM_READ_TIMEOUT_MS` | 否 | 默认 `30000` |
+| `INTENT_LLM_ENABLED` | 否 | 生产默认 `false`（规则意图识别，省调用） |
+| `GREETING_IDLE_MINUTES` | 否 | 演示可设 `0`，让「欢迎回来」立即触发 |
+| `CHAT_RATE_LIMIT` / `TASK_RATE_LIMIT` | 否 | 每用户每小时上限，默认 40 / 12 |
+| `PORT` | 否 | 默认 `8080` |
 
-> 限流为**单实例内存计数**。免费版通常只跑 1 个实例，正好适用；若扩容多实例，需改为外部存储（不推荐在免费版做）。
+### 5.4 网络
 
-## 4. 部署前端（静态网站托管）
+- 如果使用 PostgreSQL **内网地址**：云托管服务需开启**私有网络（VPC）**并选择与数据库相同的 VPC/子网；
+- 如果控制台提供了公网连接地址，也可以先用公网地址完成演示（注意安全组/白名单）；
+- 数据库安全组/白名单需放行云托管网段。
+
+### 5.5 启动自检
+
+后端启动时会做安全自检，以下任一不满足会**拒绝启动**并在日志给出原因：
+
+1. `AUTH_SECRET` 缺失 / 等于公开默认值或示例占位值 / 少于 16 位；
+2. `CORS_ALLOWED_ORIGINS` 为空或包含 `*`；
+3. 检测到 H2 数据源或 H2 控制台（容器已默认 `SPRING_PROFILES_ACTIVE=prod`，一般不会触发）。
+
+看到「启动安全自检通过」即代表生产配置正确。
+
+## 6. 构建并部署前端
+
+### 6.1 构建（必须注入后端域名）
 
 ```bash
 cd frontend
-npm install
+npm ci
 
-# 关键：静态托管与云托管不同域名，必须注入后端 API 地址
 # Git Bash / macOS / Linux
 VITE_API_BASE=https://<云托管后端域名>/api npm run build
+```
 
-# Windows PowerShell
+Windows PowerShell：
+
+```powershell
 $env:VITE_API_BASE="https://<云托管后端域名>/api"; npm run build
 ```
 
-1. 云开发 → 静态网站托管 → 上传 `dist/` 全部文件（或 `tcb hosting deploy dist -e <envId>`）；
-2. 记录静态托管默认域名（如 `https://xxx-xxx.tcloudbaseapp.com`）；
-3. 把该域名填入后端 `CORS_ALLOWED_ORIGINS` 并重启云托管服务；
-4. 本项目已使用 **hash 路由**（如 `/#/chat`），静态托管无需配置 404 回退，直接刷新任意页面都能打开；
-5. 已在 `dist/` 中生成 PWA 的 `manifest.webmanifest`、`sw.js` 与图标，可安装到主屏幕。
+> 后端域名在云托管服务详情页获取。必须带 `/api` 后缀，且使用 `https://`。
 
-> 如果后端域名之后变化，重新执行上面的构建命令即可，不需要改代码。
+### 6.2 上传
 
-## 5. 验证清单
+控制台 → 静态网站托管 → 上传 `frontend/dist` 下的全部文件。
 
-- [ ] prod 缺少 `AUTH_SECRET` / `CORS_ALLOWED_ORIGINS` 时**拒绝启动**（日志出现「启动安全自检未通过」，不应出现 Tomcat started）
-- [ ] 配置齐全后启动日志出现「启动安全自检通过：密钥已自定义、CORS 已限定、未使用 H2」
-- [ ] `GET https://<后端域名>/api/health` 返回 `{"status":"ok","db":"up"}`
-- [ ] `GET https://<后端域名>/api/system/info` 返回 `mode=real`
-- [ ] 前端首页可打开；登录页正常；刷新 `/#/chat`、`/#/growth` 不 404
-- [ ] 一键体验 → 创建伙伴 → 聊天 → 生成任务 → 开始任务 → 完成任务 → 成长档案数据正确
-- [ ] 成长页显示「本周小结」与成就徽章；首页显示按天汇总的「最近几天」
-- [ ] 重新进入（或重启云托管实例）后欢迎语引用真实历史
-- [ ] 两个不同游客账号数据互不可见
-- [ ] 高频调用触发 429 友好提示（可用脚本快速验证）
-- [ ] 连续聊天后模型响应正常（读超时 30s，失败会自动重试 1 次）
+或使用 CLI（可选）：
 
-## 6. 成本与运维注意
+```bash
+npm i -g @cloudbase/cli
+tcb login
+tcb hosting deploy dist -e <环境ID>
+```
 
-- 免费体验版有 **3000 资源点/月**：云托管实例常驻、数据库、静态托管流量都会消耗；比赛演示期够用，演示结束后可停用服务。
-- 不开启自动按量付费；到期前按官方指引用分享活动续期或了解升级政策。
-- LLM 调用成本控制：已做 10 分钟相同 Prompt 缓存、聊天上下文截断、意图识别规则优先（生产默认关闭 LLM 兜底）、
-  记忆提取启发式节流（普通闲聊不再额外调用）、失败重试仅限 1 次、每用户每小时调用限流。
-- API Key 仅存在于云托管环境变量，日志不输出。
-- 演示前先访问一次 `/api/health` 预热实例，避免冷启动拖慢第一句对话。
-- 演示结束建议停止云托管服务/环境，避免空耗资源点。
+> 项目已使用 hash 路由（`/#/chat`），静态托管**不需要**配置 404 → index.html。`dist/` 已包含 PWA 的 `manifest.webmanifest`、`sw.js` 与图标。
 
-## 7. 常见问题
+### 6.3 回填 CORS
 
-| 现象 | 处理 |
+如果静态托管域名与第 5 步填写的不一致（例如换了自定义域名），把正确域名填入后端 `CORS_ALLOWED_ORIGINS` 并重启云托管服务。
+
+## 7. 验证清单
+
+- [ ] `GET https://<后端域名>/api/health` → `{"status":"ok","db":"up"}`
+- [ ] `GET https://<后端域名>/` → 200（供平台健康检查）
+- [ ] `GET https://<后端域名>/api/system/info` → `mode=real`
+- [ ] 打开静态托管域名：登录页正常，无白屏/资源 404
+- [ ] 一键体验 → 创建伙伴 → 聊天 → 生成任务 → 开始任务 → 完成 → 成长档案数据正确
+- [ ] 成长页「本周小结 / 成就徽章」、日记「每日回顾」正常
+- [ ] 聊天页「新对话」可用；聊天左右侧栏（桌面）正常
+- [ ] 刷新 `/#/chat`、`/#/growth` 不 404
+- [ ] 退出登录 / 重新登录 / 重启后端后数据仍在
+- [ ] 两个游客账号数据互不可见
+- [ ] 高频调用触发 429 友好提示
+- [ ] 浏览器控制台无 CORS 报错
+
+## 8. 常见问题
+
+| 现象 | 排查 |
 |---|---|
-| 前端请求 401 | 检查 Token 是否过期；重新登录 |
-| CORS 报错 | 检查 `CORS_ALLOWED_ORIGINS` 是否包含前端域名（含协议） |
-| 后端启动失败（数据库） | 检查 DB_* 环境变量、直连服务是否开启、云托管与数据库是否同 VPC |
-| 闲聊回复慢 | 真实模式下模型响应时间波动；读超时 30s 自动重试 1 次，前端展示「伙伴思考中」 |
-| 刷新页面 404 | 已改为 hash 路由，应不会出现；若仍异常，检查是否用了旧版本 dist |
-| 提示「休息一下」 | 触发每小时调用限流，属预期保护；可调大 `CHAT_RATE_LIMIT` |
-| H2 数据在容器里丢失 | 生产必须用 PostgreSQL；容器本地文件不是正式存储 |
+| 云托管启动失败 | 看日志：安全自检原因（AUTH_SECRET/CORS/H2）、数据库连接失败、端口不是 8080 |
+| 数据库连不上 | 检查 DB_*、直连服务是否开启、VPC/子网、白名单；必要时加 `DB_PARAMS=?sslmode=require` |
+| 前端请求 404 | `VITE_API_BASE` 是否带 `/api`、是否指向正确的云托管域名；重新构建后再上传 |
+| CORS 报错 | `CORS_ALLOWED_ORIGINS` 是否为静态托管**完整 origin**（含 `https://`、无结尾 `/`） |
+| 聊天 502/504 | LLM Key/模型名/地址是否正确；`LLM_READ_TIMEOUT_MS` 与云托管请求超时；可先重试 |
+| 白屏 / 刷新 404 | 确认上传的是 `dist` 全部文件；项目为 hash 路由，不应出现路径 404 |
+| 健康检查失败 | 路径用 `/api/health` 或 `/`；确认容器端口 8080；数据库已初始化 |
+| 第一句回复很慢 | 冷启动；部署后先访问一次 `/api/health` 预热 |
+
+## 9. 成本与运维
+
+- 免费体验版约 **3000 资源点/月**：云托管实例、PostgreSQL、静态流量都会消耗；演示期间够用，**演示结束请在控制台停用云托管服务/实例**。
+- 不购买套餐、不开启自动超额付费；如控制台要求升级付费才能使用 PostgreSQL，请先暂停并告知，不要直接购买。
+- AI 调用成本控制已内置：10 分钟相同 Prompt 缓存、意图规则优先、记忆提取节流、每用户每小时限流、失败重试 1 次。
+- 密钥仅存在于云托管环境变量，日志不输出；不要提交到 Git。
+
+## 10. 需要你手动完成
+
+1. 用你的 CloudBase 账号创建免费体验环境（兑换码）；
+2. 初始化 PostgreSQL 并执行建表脚本；
+3. 在云托管配置环境变量（尤其是 `AUTH_SECRET`、`CORS_ALLOWED_ORIGINS`、`LLM_API_KEY`）；
+4. 获取后端域名后构建前端并上传静态托管；
+5. 可选：`tcb login` 后由 CLI 协助上传。
