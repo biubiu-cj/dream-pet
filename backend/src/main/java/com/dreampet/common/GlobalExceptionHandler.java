@@ -4,9 +4,11 @@ import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 @Slf4j
 @RestControllerAdvice
@@ -42,6 +44,17 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ConstraintViolationException.class)
     public ResponseEntity<ApiResponse<Void>> handleConstraint(ConstraintViolationException e) {
         return ResponseEntity.badRequest().body(ApiResponse.error(400, "参数校验失败"));
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ApiResponse<Void>> handleUnreadable(HttpMessageNotReadableException e) {
+        log.warn("请求体解析失败: {}", e.getMostSpecificCause().getMessage());
+        return ResponseEntity.badRequest().body(ApiResponse.error(400, "请求内容格式不正确，请检查后重试"));
+    }
+
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<ApiResponse<Void>> handleNotFound(NoResourceFoundException e) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.error(404, "接口不存在"));
     }
 
     @ExceptionHandler(Exception.class)
