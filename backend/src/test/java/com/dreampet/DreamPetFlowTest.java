@@ -278,6 +278,35 @@ class DreamPetFlowTest {
         assertNotEquals("safety", normal.path("intent").asText());
     }
 
+    @Test
+    void newConversationStartsFreshContextAndKeepsMemory() throws Exception {
+        String token = postJson("/api/auth/guest", null, null).path("data").path("token").asText();
+        postJson("/api/pets", token,
+                "{\"name\":\"星星\",\"species\":\"fox\",\"personality\":\"curious\"}");
+        postJson("/api/chat", token, "{\"message\":\"我很喜欢恐龙\"}");
+
+        JsonNode before = getJson("/api/chat/history?limit=50", token).path("data");
+        assertTrue(before.path("messages").size() >= 2);
+
+        JsonNode fresh = postJson("/api/chat/new", token, null).path("data");
+        assertEquals(1, fresh.path("messages").size());
+        assertEquals("assistant", fresh.path("messages").get(0).path("role").asText());
+        assertTrue(fresh.path("messages").get(0).path("content").asText().contains("星星"));
+
+        JsonNode after = getJson("/api/chat/history?limit=50", token).path("data");
+        assertEquals(1, after.path("messages").size());
+
+        // 长期记忆仍然保留：新对话只重置聊天窗口上下文
+        JsonNode remembered = pollGet("/api/pets/current", token,
+                data -> data.path("interests").toString().contains("恐龙"));
+        assertTrue(remembered.path("interests").toString().contains("恐龙"));
+
+        // 新对话继续聊天，历史中只包含新窗口消息
+        postJson("/api/chat", token, "{\"message\":\"你好\"}");
+        JsonNode continued = getJson("/api/chat/history?limit=50", token).path("data");
+        assertTrue(continued.path("messages").size() >= 3);
+    }
+
     private String intentOf(String token, String message) throws Exception {
         String body = "{\"message\":\"" + message + "\"}";
         return postJson("/api/chat/intent", token, body).path("data").path("intent").asText();

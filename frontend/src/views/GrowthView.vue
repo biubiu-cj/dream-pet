@@ -265,7 +265,7 @@ onMounted(async () => {
 }
 
 .eyebrow {
-  font-size: 11.5px;
+  font-size: 12.5px;
   font-weight: 800;
   letter-spacing: 2px;
   color: var(--ink-faint);
@@ -302,7 +302,7 @@ onMounted(async () => {
   display: flex;
   justify-content: center;
   background: radial-gradient(circle at 50% 62%, rgba(223, 241, 255, 0.9), transparent 66%);
-  border-radius: 24px;
+  border-radius: var(--radius-lg);
 }
 
 .hero-body {
@@ -312,7 +312,7 @@ onMounted(async () => {
 }
 
 .meet-line {
-  font-size: 11.5px;
+  font-size: 12.5px;
   font-weight: 800;
   letter-spacing: 2px;
   color: var(--ink-faint);
@@ -331,7 +331,7 @@ onMounted(async () => {
 
 .stat {
   padding: 10px 8px;
-  border-radius: 16px;
+  border-radius: var(--radius-md);
   background: rgba(255, 255, 255, 0.7);
   text-align: center;
 }
@@ -344,7 +344,7 @@ onMounted(async () => {
 }
 
 .stat span {
-  font-size: 10.5px;
+  font-size: 12px;
   font-weight: 800;
   color: var(--ink-faint);
 }
@@ -378,7 +378,7 @@ onMounted(async () => {
   display: grid;
   place-items: center;
   background: rgba(223, 241, 255, 0.7);
-  color: #7aaFD3;
+  color: #4a87b5;
   font-weight: 900;
   font-family: 'Baloo 2', sans-serif;
   border: 2px solid rgba(169, 216, 247, 0.6);
@@ -390,12 +390,12 @@ onMounted(async () => {
   background: linear-gradient(135deg, #a9d8f7, #d8f5e4);
   color: #2f6d95;
   border-color: #ffffff;
-  box-shadow: 0 8px 18px rgba(107, 160, 205, 0.28);
+  box-shadow: var(--elev-2);
 }
 
 .current .node-dot {
   transform: scale(1.12);
-  box-shadow: 0 0 0 6px rgba(169, 216, 247, 0.25), 0 10px 22px rgba(107, 160, 205, 0.3);
+  box-shadow: 0 0 0 6px rgba(169, 216, 247, 0.25), var(--elev-2);
 }
 
 .node-body strong {
@@ -404,14 +404,14 @@ onMounted(async () => {
 }
 
 .node-body small {
-  font-size: 10.5px;
+  font-size: 12px;
   font-weight: 800;
-  color: #5d93bd;
+  color: #3f7ba8;
 }
 
 .node-body p {
   margin-top: 3px;
-  font-size: 10.5px;
+  font-size: 12px;
   color: var(--ink-faint);
   font-weight: 600;
 }
@@ -422,7 +422,7 @@ onMounted(async () => {
   left: calc(50% + 26px);
   width: calc(100% - 52px);
   height: 3px;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: rgba(169, 216, 247, 0.4);
 }
 
@@ -439,7 +439,7 @@ onMounted(async () => {
 
 .interest-chip {
   padding: 7px 17px;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: linear-gradient(135deg, rgba(223, 241, 255, 0.9), rgba(216, 245, 228, 0.8));
   color: #3d6f8f;
   font-weight: 800;
@@ -457,7 +457,7 @@ onMounted(async () => {
   align-items: center;
   gap: 13px;
   padding: 13px 17px;
-  border-radius: 18px;
+  border-radius: var(--radius-md);
 }
 
 .event-icon {
@@ -494,7 +494,7 @@ onMounted(async () => {
 }
 
 .event-time {
-  font-size: 10.5px;
+  font-size: 12px;
   color: var(--ink-faint);
   font-weight: 700;
 }
@@ -509,10 +509,10 @@ onMounted(async () => {
   flex: none;
   font-size: 12px;
   font-weight: 900;
-  color: #b5892e;
+  color: #8a6620;
   background: rgba(255, 232, 163, 0.5);
   padding: 3px 10px;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
 }
 
 .empty-events {
@@ -537,7 +537,7 @@ onMounted(async () => {
 .weekly-stat {
   text-align: center;
   padding: 10px 6px;
-  border-radius: 16px;
+  border-radius: var(--radius-md);
   background: rgba(255, 255, 255, 0.65);
 }
 
@@ -549,7 +549,7 @@ onMounted(async () => {
 }
 
 .weekly-stat span {
-  font-size: 10.5px;
+  font-size: 12px;
   font-weight: 800;
   color: var(--ink-faint);
 }
@@ -579,9 +579,9 @@ onMounted(async () => {
 }
 
 .highlight-star {
-  color: #e9b94e;
+  color: #966e13;
   flex: none;
-  font-size: 11px;
+  font-size: 12px;
   margin-top: 1px;
 }
 
@@ -593,7 +593,7 @@ onMounted(async () => {
 
 .badge-card {
   padding: 14px;
-  border-radius: 20px;
+  border-radius: var(--radius-lg);
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -610,7 +610,7 @@ onMounted(async () => {
 .badge-icon {
   width: 38px;
   height: 38px;
-  border-radius: 13px;
+  border-radius: var(--radius-sm);
   display: grid;
   place-items: center;
   background: rgba(169, 216, 247, 0.35);
@@ -620,7 +620,7 @@ onMounted(async () => {
 .badge-card.unlocked .badge-icon {
   background: linear-gradient(135deg, #ffe8a3, #ffd97a);
   color: #a8822f;
-  box-shadow: 0 6px 14px rgba(233, 185, 78, 0.28);
+  box-shadow: var(--elev-1);
 }
 
 .badge-icon svg {
@@ -633,7 +633,7 @@ onMounted(async () => {
 }
 
 .badge-body p {
-  font-size: 10.5px;
+  font-size: 12px;
   line-height: 1.5;
   font-weight: 600;
   color: var(--ink-faint);
@@ -649,20 +649,20 @@ onMounted(async () => {
 .badge-track {
   flex: 1;
   height: 6px;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: rgba(169, 216, 247, 0.3);
   overflow: hidden;
 }
 
 .badge-fill {
   height: 100%;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: linear-gradient(90deg, #ffd97a, #b8e3d2);
   transition: width 0.6s;
 }
 
 .badge-progress span {
-  font-size: 9.5px;
+  font-size: 12px;
   font-weight: 800;
   color: var(--ink-faint);
 }

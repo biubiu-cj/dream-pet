@@ -137,7 +137,7 @@ onMounted(async () => {
 }
 
 .eyebrow {
-  font-size: 11.5px;
+  font-size: 12.5px;
   font-weight: 800;
   letter-spacing: 2px;
   color: var(--ink-faint);
@@ -176,7 +176,7 @@ onMounted(async () => {
 .book-icon {
   width: 44px;
   height: 44px;
-  border-radius: 14px;
+  border-radius: var(--radius-md);
   display: grid;
   place-items: center;
   background: rgba(255, 232, 163, 0.6);
@@ -193,7 +193,7 @@ onMounted(async () => {
 }
 
 .tiny {
-  font-size: 10.5px;
+  font-size: 12px;
   font-weight: 800;
   color: var(--ink-faint);
 }
@@ -227,7 +227,7 @@ onMounted(async () => {
 .memory-card {
   position: relative;
   padding: 18px 20px 14px;
-  border-radius: 20px;
+  border-radius: var(--radius-lg);
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -257,14 +257,14 @@ onMounted(async () => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  font-size: 10.5px;
+  font-size: 12px;
   color: var(--ink-faint);
   font-weight: 700;
 }
 
 .heart {
   color: #f2a0b6;
-  font-size: 10px;
+  font-size: 12px;
   margin-left: 1px;
 }
 
@@ -293,7 +293,7 @@ onMounted(async () => {
   bottom: -4px;
   width: 2px;
   background: rgba(169, 216, 247, 0.45);
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
 }
 
 .timeline-item:last-child .timeline-rail::after {
@@ -307,23 +307,23 @@ onMounted(async () => {
   border-radius: 50%;
   background: #cfe9fb;
   border: 3px solid #ffffff;
-  box-shadow: 0 3px 8px rgba(118, 148, 182, 0.2);
+  box-shadow: var(--elev-1);
   position: relative;
   z-index: 1;
 }
 
 .timeline-dot.milestone {
   background: linear-gradient(135deg, #ffd97a, #ffe9a8);
-  box-shadow: 0 0 0 4px rgba(255, 232, 163, 0.35), 0 3px 8px rgba(118, 148, 182, 0.2);
+  box-shadow: 0 0 0 4px rgba(255, 232, 163, 0.35), var(--elev-1);
 }
 
 .milestone-tag {
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 800;
   color: #8a6418;
   background: rgba(255, 232, 163, 0.6);
   padding: 2px 8px;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   margin-left: auto;
 }
 
@@ -353,9 +353,9 @@ onMounted(async () => {
 }
 
 .highlight-star {
-  color: #e9b94e;
+  color: #966e13;
   flex: none;
-  font-size: 11px;
+  font-size: 12px;
   margin-top: 1px;
 }
 
@@ -363,7 +363,7 @@ onMounted(async () => {
   flex: 1;
   margin-bottom: 10px;
   padding: 13px 17px;
-  border-radius: 18px;
+  border-radius: var(--radius-md);
 }
 
 .timeline-top {
@@ -378,7 +378,7 @@ onMounted(async () => {
 }
 
 .time {
-  font-size: 10.5px;
+  font-size: 12px;
   color: var(--ink-faint);
   font-weight: 700;
 }
@@ -393,11 +393,11 @@ onMounted(async () => {
 .exp {
   display: inline-block;
   margin-top: 6px;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 900;
-  color: #b5892e;
+  color: #8a6620;
   background: rgba(255, 232, 163, 0.5);
-  padding: 1px 9px;
-  border-radius: 999px;
+  padding: 2px 10px;
+  border-radius: var(--radius-pill);
 }
 </style>

@@ -26,12 +26,21 @@ public class AppProperties {
 
     @Data
     public static class Auth {
+        /**
+         * Token 签名密钥。
+         * 默认值仅供本地开发；生产由 application-prod.yml 置空并要求环境变量注入，
+         * 缺失或仍为默认值时 StartupSecurityValidator 会拒绝启动。
+         */
         private String secret = "dreampet-local-dev-secret-change-me";
         private int tokenTtlHours = 72;
     }
 
     @Data
     public static class Cors {
+        /**
+         * 允许的前端 Origin（逗号分隔）。
+         * 默认 * 仅供本地开发；生产必须显式配置，否则启动自检失败。
+         */
         private String allowedOrigins = "*";
     }
 

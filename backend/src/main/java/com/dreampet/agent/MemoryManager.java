@@ -12,7 +12,10 @@ import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * 长期记忆管理器：记忆提取、去重、更新、摘要、上下文组装。
@@ -29,6 +32,9 @@ public class MemoryManager {
     private static final int IMPORTANT_EVENTS_LIMIT = 5;
     private static final int INTERESTS_LIMIT = 10;
     private static final int SUMMARIZE_THRESHOLD = 20;
+    /** 相关性重排时的候选池倍数与硬上限（控制单次内存计算量） */
+    private static final int CANDIDATE_POOL_FACTOR = 6;
+    private static final int CANDIDATE_POOL_MAX = 60;
 
     private final UserInterestMapper interestMapper;
     private final MemoryMapper memoryMapper;
@@ -58,6 +64,70 @@ public class MemoryManager {
                 .stream().map(Memory::getContent).toList();
     }
 
+    /**
+     * 与当前消息相关的事件记忆：在「重要度 + 时间」的基础上叠加关键词相关性重排。
+     *
+     * <p>做法：先按原有规则取一批候选（limit 的数倍），再用与当前消息的字符二元组重合度加权，
+     * 最后取前 limit 条。纯内存计算，不引入向量库与额外中间件。
+     *
+     * <p>当 currentMessage 为空时，行为与 {@link #getImportantEvents} 完全一致。
+     */
+    public List<String> getRelevantEvents(Long userId, int limit, String currentMessage) {
+        int safeLimit = Math.max(1, limit);
+        if (currentMessage == null || currentMessage.isBlank()) {
+            return getImportantEvents(userId, safeLimit);
+        }
+        List<Memory> candidates = memoryMapper.selectList(new LambdaQueryWrapper<Memory>()
+                .eq(Memory::getUserId, userId)
+                .eq(Memory::getMemoryType, "event")
+                .orderByDesc(Memory::getImportance)
+                .orderByDesc(Memory::getCreatedAt)
+                .last("LIMIT " + Math.min(CANDIDATE_POOL_MAX, safeLimit * CANDIDATE_POOL_FACTOR)));
+        if (candidates.size() <= safeLimit) {
+            return candidates.stream().map(Memory::getContent).toList();
+        }
+
+        Set<String> queryGrams = bigrams(currentMessage);
+        List<Memory> ranked = new ArrayList<>(candidates);
+        // 相关性优先，其次重要度，最后时间；相关性为 0 时退化为原有排序
+        ranked.sort(Comparator
+                .comparingDouble((Memory m) -> -relevance(queryGrams, m.getContent()))
+                .thenComparing(m -> -safeImportance(m))
+                .thenComparing(Memory::getCreatedAt, Comparator.nullsLast(Comparator.reverseOrder())));
+        return ranked.stream().limit(safeLimit).map(Memory::getContent).toList();
+    }
+
+    private static int safeImportance(Memory m) {
+        return m.getImportance() == null ? 0 : m.getImportance();
+    }
+
+    /**
+     * 关键词重合度：候选记忆与当前消息的二元组交集占比（Jaccard 变体）。
+     * 中文按字符二元组切分，无需分词库即可捕捉「恐龙」「霸王龙」这类共现。
+     */
+    private static double relevance(Set<String> queryGrams, String content) {
+        if (queryGrams.isEmpty() || content == null || content.isBlank()) return 0;
+        Set<String> contentGrams = bigrams(content);
+        if (contentGrams.isEmpty()) return 0;
+        int hit = 0;
+        for (String g : contentGrams) {
+            if (queryGrams.contains(g)) hit++;
+        }
+        if (hit == 0) return 0;
+        // 用候选自身长度归一化，避免长记忆仅因字数多而占优
+        return (double) hit / contentGrams.size();
+    }
+
+    /** 提取字符二元组，忽略标点与空白 */
+    private static Set<String> bigrams(String text) {
+        String clean = text.replaceAll("[\\p{Punct}\\s，。！？、：；「」『』（）]", "");
+        Set<String> grams = new HashSet<>();
+        for (int i = 0; i + 1 < clean.length(); i++) {
+            grams.add(clean.substring(i, i + 2));
+        }
+        return grams;
+    }
+
     public String getLatestSummary(Long petId) {
         List<ConversationSummary> list = summaryMapper.selectList(
                 new LambdaQueryWrapper<ConversationSummary>()
@@ -77,14 +147,26 @@ public class MemoryManager {
     }
 
     public List<ChatMessage> getRecentMessages(Long petId, int limit) {
+        long conversationStartId = getConversationStartId(petId);
         List<ChatMessage> desc = chatMapper.selectList(new LambdaQueryWrapper<ChatMessage>()
                 .eq(ChatMessage::getPetId, petId)
                 .in(ChatMessage::getRole, "user", "assistant")
+                .gt(ChatMessage::getId, conversationStartId)
                 .orderByDesc(ChatMessage::getId)
                 .last("LIMIT " + limit));
         List<ChatMessage> asc = new ArrayList<>(desc);
         java.util.Collections.reverse(asc);
         return asc;
+    }
+
+    /** 最近一次「开启新对话」的分隔标记 ID；没有则返回 0（表示读取全部历史） */
+    public long getConversationStartId(Long petId) {
+        List<ChatMessage> list = chatMapper.selectList(new LambdaQueryWrapper<ChatMessage>()
+                .eq(ChatMessage::getPetId, petId)
+                .eq(ChatMessage::getMessageType, ChatMessage.TYPE_SESSION_START)
+                .orderByDesc(ChatMessage::getId)
+                .last("LIMIT 1"));
+        return list.isEmpty() ? 0 : list.get(0).getId();
     }
 
     public Task getActiveTask(Long userId) {
@@ -97,9 +179,11 @@ public class MemoryManager {
     }
 
     public LocalDateTime getLastChatTime(Long petId) {
+        long conversationStartId = getConversationStartId(petId);
         List<ChatMessage> list = chatMapper.selectList(new LambdaQueryWrapper<ChatMessage>()
                 .eq(ChatMessage::getPetId, petId)
                 .eq(ChatMessage::getRole, "user")
+                .gt(ChatMessage::getId, conversationStartId)
                 .orderByDesc(ChatMessage::getId)
                 .last("LIMIT 1"));
         return list.isEmpty() ? null : list.get(0).getCreatedAt();
@@ -163,12 +247,34 @@ public class MemoryManager {
     }
 
     public void saveChatMessage(Long userId, Long petId, String role, String content) {
+        saveChatMessage(userId, petId, role, content, ChatMessage.TYPE_NORMAL);
+    }
+
+    /** 保存聊天消息并标记类型（greeting 用于结构化去重） */
+    public void saveChatMessage(Long userId, Long petId, String role, String content, String messageType) {
         ChatMessage m = new ChatMessage();
         m.setUserId(userId);
         m.setPetId(petId);
         m.setRole(role);
         m.setContent(content.length() > 2000 ? content.substring(0, 2000) : content);
+        m.setMessageType(messageType == null || messageType.isBlank()
+                ? ChatMessage.TYPE_NORMAL : messageType);
         chatMapper.insert(m);
+    }
+
+    /**
+     * 最近一条 greeting 消息的时间（用于判断是否刚打过招呼）。
+     * 基于结构化 message_type 判断，不依赖 AI 返回文本的前缀。
+     */
+    public LocalDateTime getLastGreetingTime(Long petId) {
+        long conversationStartId = getConversationStartId(petId);
+        List<ChatMessage> list = chatMapper.selectList(new LambdaQueryWrapper<ChatMessage>()
+                .eq(ChatMessage::getPetId, petId)
+                .eq(ChatMessage::getMessageType, ChatMessage.TYPE_GREETING)
+                .gt(ChatMessage::getId, conversationStartId)
+                .orderByDesc(ChatMessage::getId)
+                .last("LIMIT 1"));
+        return list.isEmpty() ? null : list.get(0).getCreatedAt();
     }
 
     // ========== 记忆提取（LLM / Mock 规则） ==========

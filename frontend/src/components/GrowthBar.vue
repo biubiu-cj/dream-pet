@@ -31,7 +31,7 @@ withDefaults(
 .growth-bar {
   display: flex;
   flex-direction: column;
-  gap: 9px;
+  gap: 10px;
 }
 
 .growth-head {
@@ -42,43 +42,44 @@ withDefaults(
 }
 
 .level-badge {
-  padding: 3px 12px;
-  border-radius: 999px;
-  background: linear-gradient(135deg, #ffd97a, #ffe9a8);
-  color: #7c5a17;
+  padding: 4px 13px;
+  border-radius: var(--radius-pill);
+  background: linear-gradient(135deg, #f5bd4f, #ffd97a);
+  color: #5f400c;
   font-weight: 900;
   font-size: 13px;
   font-family: 'Baloo 2', sans-serif;
-  box-shadow: 0 4px 12px rgba(233, 185, 78, 0.3);
+  box-shadow: 0 4px 12px rgba(233, 185, 78, 0.32);
 }
 
 .stage-name {
   font-weight: 800;
-  font-size: 13.5px;
+  font-size: 14px;
   color: var(--ink-soft);
 }
 
 .exp-hint {
   margin-left: auto;
-  font-size: 12px;
+  padding-left: 10px;
+  font-size: 13px;
   font-weight: 700;
   color: var(--ink-faint);
 }
 
 .bar-track {
   position: relative;
-  height: 16px;
-  border-radius: 999px;
-  background: rgba(169, 216, 247, 0.32);
+  height: 14px;
+  border-radius: var(--radius-pill);
+  background: rgba(123, 146, 177, 0.14);
   overflow: hidden;
-  box-shadow: inset 0 2px 6px rgba(93, 147, 189, 0.1);
+  box-shadow: inset 0 1px 3px rgba(93, 147, 189, 0.12);
 }
 
 .bar-fill {
   position: relative;
   height: 100%;
-  border-radius: 999px;
-  background: linear-gradient(90deg, #8fc7ee, #b8e3d2 65%, #ffd97a);
+  border-radius: var(--radius-pill);
+  background: linear-gradient(90deg, #6fb0e4, #8fd4c4 62%, #f5c863);
   transition: width 0.9s cubic-bezier(0.34, 1.2, 0.64, 1);
   overflow: hidden;
 }

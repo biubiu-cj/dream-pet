@@ -70,11 +70,11 @@ function isActive(name: string) {
   align-items: center;
   gap: 4px;
   padding: 8px 10px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.82);
-  border: 1px solid rgba(255, 255, 255, 0.9);
-  box-shadow: 0 16px 44px rgba(100, 134, 172, 0.24);
-  backdrop-filter: blur(16px);
+  border-radius: var(--radius-pill);
+  background: rgba(255, 255, 255, 0.88);
+  border: 1px solid rgba(255, 255, 255, 0.95);
+  box-shadow: var(--elev-3);
+  backdrop-filter: blur(20px) saturate(1.15);
 }
 
 .nav-item {
@@ -84,31 +84,39 @@ function isActive(name: string) {
   gap: 3px;
   min-width: 62px;
   padding: 7px 10px 6px;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   color: var(--ink-faint);
   transition: color 0.2s, background 0.2s, transform 0.2s;
 }
 
 .nav-item:hover {
   color: var(--sky-ink);
+  background: rgba(169, 216, 247, 0.16);
 }
 
 .nav-item.active {
   color: #2f6d95;
-  background: linear-gradient(135deg, rgba(169, 216, 247, 0.55), rgba(214, 245, 228, 0.7));
+  background: linear-gradient(135deg, rgba(169, 216, 247, 0.6), rgba(214, 245, 228, 0.72));
   transform: translateY(-1px);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
 }
 
 .nav-icon svg {
   width: 22px;
   height: 22px;
   display: block;
+  transition: stroke-width 0.2s;
+}
+
+/* 选中态加粗描边，形成「线性未选中 / 实心已选中」的层级差 */
+.nav-item.active .nav-icon svg {
+  stroke-width: 2.4;
 }
 
 .nav-label {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 800;
-  letter-spacing: 0.3px;
+  letter-spacing: 0.2px;
 }
 
 @media (max-width: 380px) {

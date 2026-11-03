@@ -42,7 +42,7 @@ DreamPet 是面向 **6~10 岁儿童**的 AI 虚拟伙伴与创意成长陪伴平
 | 模块 | 说明 |
 |---|---|
 | 创建伙伴 | 5 种物种、名字、性格；不预选兴趣，话题由聊天自然产生；设置中可随时更换物种，成长与记忆保留 |
-| AI 聊天 | 结合伙伴性格、聊天中形成的话题记忆、当前任务自由对话（想聊什么都可以） |
+| AI 聊天 | 结合伙伴性格、聊天中形成的话题记忆、当前任务自由对话（想聊什么都可以）；支持「开启新对话」，清空窗口但保留长期记忆 |
 | 意图识别 | 11 类意图（打招呼/兴趣/梦想/任务/回忆/情绪/提问等），影响任务推荐与回应策略 |
 | 今日任务 | TaskAgent 按聊天话题生成；结构化校验 + 服务端奖励截断；待办任务可置为进行中 |
 | 成长系统 | 任务/聊天获得经验 → 升级 → 4 个成长阶段 → 成长动画 |
@@ -104,16 +104,34 @@ VITE_API_BASE=https://<云托管后端域名>/api npm run build
 | `LLM_API_KEY` | 是 | 文本大模型 Key，仅存后端环境变量 |
 | `LLM_BASE_URL` / `LLM_MODEL` | 是 | OpenAI 兼容地址与模型名 |
 | `LLM_READ_TIMEOUT_MS` / `LLM_MAX_TOKENS` | 否 | 默认 30000 / 600 |
-| `AUTH_SECRET` | 是 | Token 签名密钥，生产务必替换 |
-| `CORS_ALLOWED_ORIGINS` | 是 | 生产填写前端静态托管域名 |
+| `AUTH_SECRET` | **prod 强制** | Token 签名密钥，至少 16 位随机值。生产未配置、仍为默认值或过短时**服务拒绝启动** |
+| `CORS_ALLOWED_ORIGINS` | **prod 强制** | 前端静态托管域名（逗号分隔）。生产留空或填 `*` 时**服务拒绝启动** |
 | `GREETING_IDLE_MINUTES` | 否 | 欢迎语空闲阈值，默认 30 |
 | `INTENT_LLM_ENABLED` | 否 | 意图识别 LLM 兜底；生产默认关闭 |
 | `CHAT_RATE_LIMIT` / `TASK_RATE_LIMIT` | 否 | 每用户每小时 AI 调用上限，默认 40 / 12 |
-| `SPRING_PROFILES_ACTIVE` | 否 | `local`（默认）/ `prod` |
+| `SPRING_PROFILES_ACTIVE` | **部署必传** | `local`（默认）/ `prod`。生产漏传会被启动自检拦截（见下） |
 | `DB_HOST` / `DB_PORT` / `DB_NAME` / `DB_USER` / `DB_PASSWORD` | prod | CloudBase PostgreSQL 连接信息 |
 | `VITE_API_BASE` | 构建时 | 前端 API 地址；本地 `/api`，生产填后端域名 |
 
 > AI 失败统一转换为结构化响应：未配置 Key → 503；认证失败/上游异常 → 502；超时 → 504；触发用户频率限制 → 429。
+
+### 生产启动安全自检
+
+只要激活了任意一个非 `local` / `test` 的 profile（包括 `local,prod` 同时激活），`StartupSecurityValidator` 就会强制校验以下各项，任一不满足即**拒绝启动并打印原因**（宁可起不来，也不带着不安全配置上线）：
+
+1. `AUTH_SECRET` 已显式配置、不等于仓库中公开的默认值/示例占位值、长度 ≥ 16
+2. `CORS_ALLOWED_ORIGINS` 已显式配置且不包含通配 `*`
+3. 数据源不是 H2，且 H2 控制台未启用
+
+第 3 项用于拦截在 prod profile 下误用 H2 / 开启 H2 控制台的情况。为避免「容器漏传 `SPRING_PROFILES_ACTIVE` 后退回 local」的高危场景，**Dockerfile 已默认设置 `ENV SPRING_PROFILES_ACTIVE=prod`**；容器与云托管即使漏传该变量也不会使用 H2。若直接以 jar 方式部署，请务必显式设置 prod。H2 控制台由 Spring Boot 注册为**独立 Servlet**，不经过登录拦截器，项目也未引入 `spring-boot-starter-security`，因此没有额外兜底——控制台一旦在公网开启就等同于开放数据库。
+
+### 已知边界与安全取舍
+
+以下是在「CloudBase 免费体验版、不引入中间件」约束下的有意取舍，部署前请知悉：
+
+- **调用限流是单实例内存计数**（`RateLimitService`）。计数随进程存活，因此：① 实例冷启动或重新调度后计数归零；② 若未来扩为多实例，实际限额约为 `配置值 × 实例数`。它的目的是防止公网刷爆模型费用，而非精确配额，不应作为计费级的强保证。若需跨实例精确限流，需要引入 Redis 等共享存储。
+- **前端 Token 存放在 `localStorage`**（`frontend/src/api/http.ts`）。在「静态托管 + 跨域 API」架构下，`HttpOnly` Cookie 需要同站部署，与当前架构冲突，故采用 `Authorization` 头传递 JWT。代价是**该存储对 XSS 不设防**：若页面被注入脚本，Token 可被读取。由于聊天内容涉及儿童情绪与家庭信息，上线前应确保不引入未经审查的第三方脚本，并保持依赖更新。
+- 鉴权**不依赖 Cookie**，因此 CORS 未开启 `allowCredentials`；跨域配置收紧的主要目的是防止第三方站点滥用免登录接口（如批量创建游客账号）。
 
 ## 测试与验证
 
@@ -131,7 +149,7 @@ node scripts/intent-demo.mjs /tmp/dreampet-token.txt
 node scripts/verify-restart.mjs /tmp/dreampet-token.txt
 ```
 
-当前结果：后端 **20 项测试全部通过**，前端类型检查与生产构建通过，真实 AI 聊天/任务/反馈、安全引导、重启持久化均已实测。详见 [测试报告](docs/TEST-REPORT.md)。
+当前结果：后端 **108 项测试全部通过**，前端类型检查与生产构建通过，真实 AI 聊天/任务/反馈、安全引导、重启持久化均已实测。详见 [测试报告](docs/TEST-REPORT.md)。
 
 ## 项目结构
 
@@ -185,7 +203,7 @@ dream-pet/
 ## 部署状态
 
 - ✅ 代码、数据库脚本、真实 AI 完整演示流程、部署文件与文档已完成
-- ✅ 后端测试（20 项）、前端构建、端到端冒烟、重启持久化验证全部通过
+- ✅ 后端测试（108 项）、前端构建、端到端冒烟、重启持久化验证全部通过
 - ✅ 部署前加固：API 地址可配置、hash 路由、健康检查、AI 限流、小实例资源参数、PWA
 - ⏳ **尚未部署到 CloudBase**（等待账号授权与人工操作，步骤见 [部署说明](docs/DEPLOYMENT.md)）
 - 需要手动完成：创建 CloudBase 免费环境 → 启用 PostgreSQL → 云托管部署后端（配置环境变量）→ 静态托管上传前端 → 配置 CORS

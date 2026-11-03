@@ -102,9 +102,9 @@ function open(task: Task) {
 }
 
 .eyebrow {
-  font-size: 11.5px;
+  font-size: 12px;
   font-weight: 800;
-  letter-spacing: 2px;
+  letter-spacing: 1.6px;
   color: var(--ink-faint);
 }
 
@@ -124,14 +124,14 @@ function open(task: Task) {
   display: inline-flex;
   gap: 5px;
   padding: 5px;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: rgba(255, 255, 255, 0.65);
   margin-bottom: 18px;
 }
 
 .tabs button {
   padding: 8px 22px;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   font-weight: 800;
   font-size: 13.5px;
   color: var(--ink-soft);
@@ -141,7 +141,7 @@ function open(task: Task) {
 .tabs button.active {
   background: #ffffff;
   color: #2f6d95;
-  box-shadow: 0 6px 16px rgba(93, 147, 189, 0.16);
+  box-shadow: var(--elev-1);
 }
 
 .task-list {

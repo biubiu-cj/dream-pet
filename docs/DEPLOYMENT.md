@@ -24,6 +24,7 @@
 1. 控制台 → 数据库 → PostgreSQL → 初始化（记录数据库名、用户名、密码）；
 2. 开启「直连服务」，获取 **内网地址 + 端口(5432)**（云托管内网访问；本地调试可用公网地址）；
 3. 执行建表脚本 `backend/src/main/resources/db/schema-postgres.sql`（可用 PG 控制台 SQL 窗口或 `psql`）。
+   脚本可重复执行；已有旧库升级时同样执行一次，其中包含 `ALTER TABLE chat_messages ADD COLUMN IF NOT EXISTS message_type ...`。
 
 ## 3. 部署后端（云托管）
 
@@ -40,14 +41,18 @@
 ```bash
 cd backend
 docker build -t dreampet-backend:latest .
-docker run -p 8080:8080 --env-file ../.env dreampet-backend:latest
+# 显式 -e 覆盖任何本地 env 文件中的 profile，避免误用 local/H2
+docker run -p 8080:8080 -e SPRING_PROFILES_ACTIVE=prod --env-file ../.env dreampet-backend:latest
 ```
+
+> 镜像已默认 `SPRING_PROFILES_ACTIVE=prod`；但如果 `--env-file` 里写了 `local`，会覆盖镜像默认值并退回 H2。
+> 因此上面显式加了 `-e SPRING_PROFILES_ACTIVE=prod`。部署用的 env 文件建议直接从仓库模板复制后删除/注释 `SPRING_PROFILES_ACTIVE=local`。
 
 **环境变量清单：**
 
 | 变量 | 必填 | 示例 / 说明 |
 |---|---|---|
-| SPRING_PROFILES_ACTIVE | 是 | `prod` |
+| SPRING_PROFILES_ACTIVE | 是 | `prod`（Dockerfile 已默认 prod，仍建议在控制台显式设置） |
 | DB_HOST / DB_PORT / DB_NAME / DB_USER / DB_PASSWORD | 是 | PostgreSQL 内网连接信息 |
 | DB_INIT_MODE | 否 | 首次可设 `always` 自动建表，之后改 `never` |
 | LLM_API_KEY / LLM_BASE_URL / LLM_MODEL | 是 | 仅真实文本大模型，绝不写进前端或 Git |
@@ -86,6 +91,8 @@ $env:VITE_API_BASE="https://<云托管后端域名>/api"; npm run build
 
 ## 5. 验证清单
 
+- [ ] prod 缺少 `AUTH_SECRET` / `CORS_ALLOWED_ORIGINS` 时**拒绝启动**（日志出现「启动安全自检未通过」，不应出现 Tomcat started）
+- [ ] 配置齐全后启动日志出现「启动安全自检通过：密钥已自定义、CORS 已限定、未使用 H2」
 - [ ] `GET https://<后端域名>/api/health` 返回 `{"status":"ok","db":"up"}`
 - [ ] `GET https://<后端域名>/api/system/info` 返回 `mode=real`
 - [ ] 前端首页可打开；登录页正常；刷新 `/#/chat`、`/#/growth` 不 404

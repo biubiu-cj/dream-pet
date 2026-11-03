@@ -81,11 +81,11 @@ const stars = computed(() => Math.min(3, Math.max(1, props.task.difficulty)))
   display: flex;
   gap: 16px;
   padding: 18px 20px;
-  border-radius: 24px;
-  background: rgba(255, 255, 255, 0.86);
-  border: 1px solid rgba(255, 255, 255, 0.9);
-  box-shadow: 0 10px 26px rgba(118, 148, 182, 0.12);
-  transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.22s;
+  border-radius: var(--radius-md);
+  background: var(--card);
+  border: 1px solid var(--hairline);
+  box-shadow: var(--elev-1);
+  transition: transform 0.22s var(--ease-spring), box-shadow 0.22s;
   position: relative;
   overflow: hidden;
 }
@@ -107,7 +107,7 @@ const stars = computed(() => Math.min(3, Math.max(1, props.task.difficulty)))
 
 .clickable:hover {
   transform: translateY(-3px);
-  box-shadow: 0 18px 36px rgba(118, 148, 182, 0.2);
+  box-shadow: var(--elev-2);
 }
 
 .task-card.done {
@@ -118,7 +118,7 @@ const stars = computed(() => Math.min(3, Math.max(1, props.task.difficulty)))
   flex: none;
   width: 46px;
   height: 46px;
-  border-radius: 16px;
+  border-radius: var(--radius-sm);
   display: grid;
   place-items: center;
   background: var(--accent-bg);
@@ -145,17 +145,17 @@ const stars = computed(() => Math.min(3, Math.max(1, props.task.difficulty)))
 }
 
 .task-cat {
-  font-size: 12px;
+  font-size: 12.5px;
   font-weight: 800;
   color: var(--accent);
   background: var(--accent-bg);
-  padding: 2px 10px;
-  border-radius: 999px;
+  padding: 3px 11px;
+  border-radius: var(--radius-pill);
 }
 
 .task-status {
   margin-left: auto;
-  font-size: 11.5px;
+  font-size: 12.5px;
   font-weight: 800;
   color: var(--ink-faint);
 }
@@ -169,14 +169,15 @@ const stars = computed(() => Math.min(3, Math.max(1, props.task.difficulty)))
 }
 
 .task-title {
-  font-size: 17.5px;
+  font-size: 17px;
   font-weight: 800;
 }
 
 .task-desc {
-  font-size: 13.5px;
+  font-size: 14px;
   color: var(--ink-soft);
   font-weight: 600;
+  line-height: 1.6;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
@@ -187,11 +188,11 @@ const stars = computed(() => Math.min(3, Math.max(1, props.task.difficulty)))
   display: flex;
   align-items: center;
   gap: 14px;
-  margin-top: 3px;
+  margin-top: 5px;
 }
 
 .star {
-  color: rgba(169, 158, 181, 0.35);
+  color: rgba(139, 128, 151, 0.3);
   font-size: 13px;
 }
 
@@ -202,10 +203,10 @@ const stars = computed(() => Math.min(3, Math.max(1, props.task.difficulty)))
 .reward {
   font-size: 12.5px;
   font-weight: 800;
-  color: #b5892e;
-  background: rgba(255, 232, 163, 0.45);
-  padding: 1px 10px;
-  border-radius: 999px;
+  color: #8a6620;
+  background: rgba(255, 232, 163, 0.55);
+  padding: 2px 11px;
+  border-radius: var(--radius-pill);
 }
 
 .task-card.compact {
@@ -216,7 +217,7 @@ const stars = computed(() => Math.min(3, Math.max(1, props.task.difficulty)))
 .compact .task-icon {
   width: 38px;
   height: 38px;
-  border-radius: 13px;
+  border-radius: var(--radius-sm);
 }
 
 .compact .task-title {

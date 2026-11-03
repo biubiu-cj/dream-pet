@@ -296,10 +296,10 @@ async function removeAccount() {
 .dialog-card {
   width: min(380px, 100%);
   padding: 28px 26px 24px;
-  border-radius: 28px;
+  border-radius: var(--radius-lg);
   background: linear-gradient(170deg, #fffdf8, #fff5e8);
   border: 2px solid #ffffff;
-  box-shadow: 0 30px 80px rgba(60, 84, 120, 0.35);
+  box-shadow: var(--elev-3);
   text-align: center;
 }
 
@@ -307,7 +307,7 @@ async function removeAccount() {
   width: 56px;
   height: 56px;
   margin: 0 auto 10px;
-  border-radius: 20px;
+  border-radius: var(--radius-lg);
   display: grid;
   place-items: center;
   background: rgba(255, 232, 163, 0.55);
@@ -339,7 +339,7 @@ async function removeAccount() {
 }
 
 .eyebrow {
-  font-size: 11.5px;
+  font-size: 12px;
   font-weight: 800;
   letter-spacing: 2px;
   color: var(--ink-faint);
@@ -378,7 +378,7 @@ async function removeAccount() {
   justify-content: center;
   gap: 2px;
   padding: 14px;
-  border-radius: 22px;
+  border-radius: var(--radius-lg);
   background: radial-gradient(circle at 50% 55%, rgba(223, 241, 255, 0.9), transparent 68%);
 }
 
@@ -390,7 +390,7 @@ async function removeAccount() {
 }
 
 .preview-stage {
-  font-size: 11.5px;
+  font-size: 12px;
   font-weight: 800;
   color: var(--ink-faint);
 }
@@ -402,7 +402,7 @@ async function removeAccount() {
 }
 
 .field label small {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--ink-faint);
   margin-left: 4px;
 }
@@ -419,7 +419,7 @@ async function removeAccount() {
   align-items: center;
   gap: 1px;
   padding: 8px 4px 7px;
-  border-radius: 18px;
+  border-radius: var(--radius-md);
   background: rgba(255, 255, 255, 0.7);
   border: 2px solid transparent;
   transition: all 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -432,12 +432,12 @@ async function removeAccount() {
 .species-choice.active {
   border-color: var(--tint);
   background: #ffffff;
-  box-shadow: 0 10px 22px rgba(118, 148, 182, 0.16);
+  box-shadow: var(--elev-2);
   transform: translateY(-2px) scale(1.03);
 }
 
 .species-choice span {
-  font-size: 11.5px;
+  font-size: 12px;
   font-weight: 800;
   color: var(--ink-soft);
 }
@@ -460,7 +460,7 @@ async function removeAccount() {
 
 .personality-chip {
   padding: 8px 16px;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: rgba(255, 255, 255, 0.7);
   border: 2px solid transparent;
   font-weight: 800;
@@ -473,7 +473,7 @@ async function removeAccount() {
   border-color: #a9d8f7;
   background: #ffffff;
   color: #2f6d95;
-  box-shadow: 0 8px 18px rgba(118, 148, 182, 0.14);
+  box-shadow: var(--elev-2);
 }
 
 .saved-text {
@@ -512,7 +512,7 @@ async function removeAccount() {
   color: #7c4a5e;
   font-weight: 900;
   font-size: 19px;
-  box-shadow: 0 10px 22px rgba(242, 160, 182, 0.32);
+  box-shadow: var(--elev-2);
 }
 
 .account-info {
@@ -521,7 +521,7 @@ async function removeAccount() {
 }
 
 .label {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 800;
   letter-spacing: 1px;
   color: var(--ink-faint);
@@ -538,7 +538,7 @@ async function removeAccount() {
   align-items: center;
   gap: 5px;
   margin-top: 1px;
-  font-size: 10.5px;
+  font-size: 12px;
   font-weight: 700;
   color: var(--ink-faint);
 }
@@ -556,9 +556,9 @@ async function removeAccount() {
   font-size: 12px;
   font-weight: 800;
   padding: 5px 13px;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: rgba(216, 245, 228, 0.75);
-  color: #3f7d62;
+  color: #376e56;
 }
 
 .mode-desc {

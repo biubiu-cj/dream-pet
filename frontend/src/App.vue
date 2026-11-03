@@ -7,9 +7,9 @@ import LevelUpModal from '@/components/LevelUpModal.vue'
 
 const route = useRoute()
 
-const showNav = computed(
-  () => route.name !== 'welcome' && route.name !== 'create-pet',
-)
+const HIDDEN_NAV_ROUTES = new Set(['welcome', 'create-pet', 'chat'])
+
+const showNav = computed(() => !HIDDEN_NAV_ROUTES.has(String(route.name)))
 </script>
 
 <template>

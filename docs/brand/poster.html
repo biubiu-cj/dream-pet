@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<title>DreamPet 竖版海报 9:16</title>
+<style>
+  html { zoom: 2; }
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  :root{
+    --cream:#fffaf3; --sky-deep:#a9d8f7; --sky-ink:#5d93bd;
+    --pink-deep:#f2a0b6; --mint-deep:#7cc9a4;
+    --sun:#ffe8a3; --sun-deep:#e9b94e; --lavender-deep:#9c8ad4;
+    --ink:#463d52; --ink-soft:#7d7189; --ink-faint:#a99eb5;
+    --orange:#f0913c;
+  }
+
+  body{
+    width:1080px; height:1920px; overflow:hidden;
+    font-family:"Microsoft YaHei UI","Microsoft YaHei","Noto Sans SC",sans-serif;
+    color:var(--ink); -webkit-font-smoothing:antialiased;
+  }
+
+  .stage{
+    position:relative; width:1080px; height:1920px; overflow:hidden;
+    background:
+      radial-gradient(860px 700px at 10% -4%,  #fff4de 0%, rgba(255,244,222,0) 60%),
+      radial-gradient(820px 720px at 98% 16%,  #d7efff 0%, rgba(215,239,255,0) 62%),
+      radial-gradient(760px 640px at 4% 56%,   #ffe6ee 0%, rgba(255,230,238,0) 58%),
+      radial-gradient(900px 760px at 86% 92%,  #d6f5e6 0%, rgba(214,245,230,0) 62%),
+      linear-gradient(170deg,#fffaf3 0%,#fdf5ff 46%,#eefaff 100%);
+  }
+
+  .blob{ position:absolute; border-radius:50%; filter:blur(52px); }
+  .v1{ width:420px; height:420px; left:-150px; top:60px;  background:rgba(255,232,163,.52); }
+  .v2{ width:380px; height:380px; right:-130px; top:420px; background:rgba(169,216,247,.46); }
+  .v3{ width:400px; height:400px; left:-140px; top:1180px; background:rgba(255,213,224,.44); }
+  .v4{ width:460px; height:460px; right:-160px; bottom:60px; background:rgba(216,245,228,.52); }
+
+  .sp{ position:absolute; filter:drop-shadow(0 2px 6px rgba(93,147,189,.16)); }
+  .dot{ position:absolute; border-radius:50%; }
+
+  /* ===== 顶部 ===== */
+  .head{ position:absolute; top:92px; left:0; width:100%; text-align:center; }
+
+  .kicker{
+    display:inline-flex; align-items:center; gap:11px;
+    height:54px; padding:0 28px; border-radius:27px;
+    background:rgba(255,255,255,.88); border:1px solid rgba(169,216,247,.8);
+    box-shadow:0 10px 26px rgba(93,147,189,.13);
+    font-size:21px; font-weight:700; color:var(--sky-ink); letter-spacing:1px;
+  }
+
+  .logo-row{ display:flex; align-items:center; justify-content:center; gap:22px; margin-top:34px; }
+  .logo-mark{
+    width:94px; height:94px; border-radius:29px; flex:none;
+    background:linear-gradient(140deg,#ffd97a,#f0913c 58%,#ef8a6d);
+    box-shadow:0 16px 32px rgba(240,145,60,.30), inset 0 2px 0 rgba(255,255,255,.55);
+    display:flex; align-items:center; justify-content:center;
+  }
+  .logo-mark svg{ width:54px; height:54px; }
+  .brand{
+    font-size:96px; font-weight:800; letter-spacing:-1px; line-height:1;
+    background:linear-gradient(118deg,#463d52 0%,#5d93bd 54%,#7cc9a4 100%);
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+  }
+
+  .zh{ margin-top:26px; font-size:52px; font-weight:800; letter-spacing:3px; }
+  .zh em{ font-style:normal; color:var(--orange); }
+
+  .slogan{
+    margin-top:22px; display:inline-flex; align-items:center; gap:18px;
+    font-size:28px; font-weight:600; color:var(--ink-soft); letter-spacing:2px;
+  }
+  .slogan .bar{ width:56px; height:5px; border-radius:3px; }
+  .slogan .l{ background:linear-gradient(90deg,rgba(233,185,78,0),var(--sun-deep)); }
+  .slogan .r{ background:linear-gradient(90deg,var(--pink-deep),rgba(242,160,182,0)); }
+
+  /* ===== 中部角色 ===== */
+  .hero{ position:absolute; top:446px; left:0; width:1080px; height:620px; }
+
+  .halo{
+    position:absolute; left:50%; top:330px; transform:translate(-50%,-50%);
+    width:700px; height:700px; border-radius:50%;
+    background:radial-gradient(circle,rgba(255,255,255,.95) 0%,rgba(255,255,255,.5) 44%,rgba(255,255,255,0) 70%);
+  }
+  .ring{ position:absolute; left:50%; top:330px; transform:translate(-50%,-50%);
+         border-radius:50%; border:2px dashed rgba(169,216,247,.5); }
+  .r1{ width:560px; height:560px; }
+  .r2{ width:720px; height:720px; border-color:rgba(242,160,182,.26); }
+
+  .pet{ position:absolute; }
+  .pet img{ display:block; width:100%; height:auto; }
+
+  .p-main{ width:380px; left:350px; top:140px; z-index:6;
+           filter:drop-shadow(0 26px 36px rgba(93,147,189,.28)); }
+  .p-cat { width:190px; left:96px;  top:104px; z-index:4; filter:drop-shadow(0 16px 24px rgba(93,147,189,.20)); }
+  .p-rab { width:172px; right:104px; top:88px; z-index:4; filter:drop-shadow(0 16px 24px rgba(93,147,189,.20)); }
+  .p-bear{ width:184px; left:30px;  top:352px; z-index:5; filter:drop-shadow(0 16px 24px rgba(93,147,189,.20)); }
+  .p-dino{ width:190px; right:26px; top:344px; z-index:5; filter:drop-shadow(0 16px 24px rgba(93,147,189,.20)); }
+
+  .shadow{ position:absolute; border-radius:50%;
+           background:radial-gradient(ellipse,rgba(125,113,137,.20),rgba(125,113,137,0) 70%); }
+  .s-main{ width:344px; height:54px; left:368px; top:600px; }
+  .s-bear{ width:168px; height:32px; left:38px;  top:646px; }
+  .s-dino{ width:172px; height:32px; right:34px; top:576px; }
+
+  .bubble{
+    position:absolute; background:#fff; border-radius:26px; padding:16px 24px;
+    font-size:22px; font-weight:700; box-shadow:0 16px 32px rgba(93,147,189,.18);
+    z-index:9; white-space:nowrap; width:max-content;
+  }
+  .bubble::after{ content:""; position:absolute; width:18px; height:18px;
+                  background:#fff; transform:rotate(45deg); border-radius:4px; }
+  .bb1{ left:132px; top:14px; }
+  .bb1::after{ right:40px; bottom:-7px; }
+  .bb2{ right:116px; top:-4px; color:#2f6f98; }
+  .bb2::after{ right:44px; bottom:-7px; }
+
+  .lv{
+    position:absolute; left:50%; transform:translateX(-50%); top:638px; z-index:10;
+    display:flex; align-items:center; gap:16px; background:#fff; white-space:nowrap;
+    border-radius:32px; padding:15px 28px; box-shadow:0 18px 36px rgba(93,147,189,.18);
+  }
+  .lv .badge{ height:38px; padding:0 17px; border-radius:19px; display:flex; align-items:center;
+    font-size:20px; font-weight:800; color:#7c5a17;
+    background:linear-gradient(135deg,#ffd97a,#ffe9a8); }
+  .lv .bar{ width:180px; height:13px; border-radius:7px; background:#eef2f6; overflow:hidden; }
+  .lv .bar i{ display:block; width:62%; height:100%; border-radius:7px;
+              background:linear-gradient(90deg,#7fb9e6,#7cc9a4); }
+  .lv .txt{ font-size:19px; font-weight:700; color:var(--ink-faint); }
+
+  /* ===== 三大核心 ===== */
+  .core{ position:absolute; top:1246px; left:72px; width:936px;
+         display:flex; gap:22px; }
+  .cc{
+    flex:1; background:rgba(255,255,255,.92); border-radius:32px;
+    padding:30px 26px 28px; text-align:center;
+    box-shadow:0 20px 40px rgba(93,147,189,.13);
+    border:1px solid rgba(255,255,255,.9);
+  }
+  .cico{ width:72px; height:72px; border-radius:23px; margin:0 auto 18px;
+         display:flex; align-items:center; justify-content:center; }
+  .cico svg{ width:38px; height:38px; }
+  .i1{ background:linear-gradient(140deg,#cfe9ff,#a9d8f7); }
+  .i2{ background:linear-gradient(140deg,#ffe4ec,#ffc0d2); }
+  .i3{ background:linear-gradient(140deg,#dcf7e8,#aee9cb); }
+  .cname{ font-size:28px; font-weight:800; letter-spacing:1px; }
+  .cdesc{ margin-top:10px; font-size:17px; line-height:1.6; color:var(--ink-faint); font-weight:600; }
+
+  /* ===== 功能点 ===== */
+  .feats{ position:absolute; top:1520px; left:72px; width:936px;
+          display:flex; flex-wrap:wrap; gap:12px; justify-content:center; }
+  .feats .row{ width:100%; display:flex; gap:12px; justify-content:center; }
+  .ft{
+    display:inline-flex; align-items:center; gap:9px;
+    height:54px; padding:0 20px; border-radius:27px;
+    background:rgba(255,255,255,.80); border:1px solid rgba(169,158,181,.20);
+    font-size:19px; font-weight:700; color:var(--ink-soft); white-space:nowrap;
+  }
+  .ft .dotc{ width:11px; height:11px; border-radius:50%; flex:none; }
+
+  /* ===== 底部 ===== */
+  .foot{ position:absolute; left:72px; bottom:72px; width:936px; }
+  .divider{ height:2px; border-radius:1px; margin-bottom:30px;
+    background:linear-gradient(90deg,rgba(169,216,247,0),rgba(169,216,247,.65) 22%,rgba(242,160,182,.6) 72%,rgba(242,160,182,0)); }
+
+  .frow{ display:flex; align-items:center; justify-content:space-between; }
+  .fleft .ft-t{ font-size:30px; font-weight:800; letter-spacing:1px; }
+  .fleft .ft-s{ margin-top:12px; font-size:19px; font-weight:600; color:var(--ink-faint); letter-spacing:.6px; }
+
+  .safe{
+    display:inline-flex; align-items:center; gap:12px; margin-top:22px;
+    height:52px; padding:0 22px; border-radius:26px;
+    background:rgba(216,245,228,.75); border:1px solid rgba(124,201,164,.45);
+    font-size:19px; font-weight:700; color:#3f8f6a;
+  }
+  .safe svg{ width:22px; height:22px; }
+
+  .stack{ display:flex; flex-direction:column; gap:12px; align-items:flex-end; }
+  .tg{ height:44px; padding:0 20px; border-radius:22px; display:inline-flex; align-items:center;
+       font-size:18px; font-weight:700; color:#2f6f98;
+       background:rgba(223,241,255,.9); border:1px solid rgba(169,216,247,.85); }
+  .tg.g{ color:#3f8f6a; background:rgba(216,245,228,.85); border-color:rgba(124,201,164,.5); }
+  .tg.y{ color:#7c5a17; background:rgba(255,232,163,.75); border-color:rgba(233,185,78,.5); }
+</style>
+</head>
+<body>
+<div class="stage">
+  <div class="blob v1"></div><div class="blob v2"></div>
+  <div class="blob v3"></div><div class="blob v4"></div>
+
+  <svg class="sp" style="left:118px;top:300px;width:34px;height:34px;" viewBox="0 0 24 24" fill="#ffd97a"><path d="M12 1.6l2.5 6.2 6.6.5-5 4.3 1.6 6.5L12 15.6 6.3 19.1l1.6-6.5-5-4.3 6.6-.5z"/></svg>
+  <svg class="sp" style="right:120px;top:360px;width:28px;height:28px;" viewBox="0 0 24 24" fill="#f2a0b6"><path d="M12 1.6l2.5 6.2 6.6.5-5 4.3 1.6 6.5L12 15.6 6.3 19.1l1.6-6.5-5-4.3 6.6-.5z"/></svg>
+  <svg class="sp" style="left:64px;top:1150px;width:26px;height:26px;" viewBox="0 0 24 24" fill="#a9d8f7"><path d="M12 1.6l2.5 6.2 6.6.5-5 4.3 1.6 6.5L12 15.6 6.3 19.1l1.6-6.5-5-4.3 6.6-.5z"/></svg>
+  <svg class="sp" style="right:70px;top:1196px;width:24px;height:24px;" viewBox="0 0 24 24" fill="#7cc9a4"><path d="M12 1.6l2.5 6.2 6.6.5-5 4.3 1.6 6.5L12 15.6 6.3 19.1l1.6-6.5-5-4.3 6.6-.5z"/></svg>
+  <div class="dot" style="left:200px;top:470px;width:13px;height:13px;background:rgba(124,201,164,.7);"></div>
+  <div class="dot" style="right:210px;top:500px;width:11px;height:11px;background:rgba(233,185,78,.7);"></div>
+  <div class="dot" style="left:860px;top:1130px;width:12px;height:12px;background:rgba(242,160,182,.65);"></div>
+
+  <!-- 顶部 -->
+  <div class="head">
+    <div class="kicker">✦ 面向 6~10 岁儿童的 AI 虚拟伙伴</div>
+    <div class="logo-row">
+      <div class="logo-mark">
+        <svg viewBox="0 0 24 24" fill="#fff">
+          <path d="M12 21s-7.3-4.6-9.3-9A5.2 5.2 0 0 1 12 6.6a5.2 5.2 0 0 1 9.3 5.4C19.3 16.4 12 21 12 21z"/>
+        </svg>
+      </div>
+      <div class="brand">DreamPet</div>
+    </div>
+    <div class="zh">AI <em>梦想养成</em>伙伴</div>
+    <div class="slogan"><span class="bar l"></span>每一次陪伴，都是一次成长<span class="bar r"></span></div>
+  </div>
+
+  <!-- 角色 -->
+  <div class="hero">
+    <div class="halo"></div>
+    <div class="ring r1"></div>
+    <div class="ring r2"></div>
+
+    <div class="pet p-cat"><img src="../../frontend/src/assets/pets/cat.png" alt="小猫"/></div>
+    <div class="pet p-rab"><img src="../../frontend/src/assets/pets/rabbit.png" alt="小兔"/></div>
+    <div class="pet p-bear"><img src="../../frontend/src/assets/pets/bear.png" alt="小熊"/></div>
+    <div class="pet p-dino"><img src="../../frontend/src/assets/pets/dino.png" alt="小恐龙"/></div>
+
+    <div class="shadow s-bear"></div>
+    <div class="shadow s-dino"></div>
+    <div class="shadow s-main"></div>
+    <div class="pet p-main"><img src="../../frontend/src/assets/pets/fox.png" alt="小狐狸"/></div>
+
+    <div class="bubble bb1">今天也元气满满！</div>
+    <div class="bubble bb2">我记得你的梦想 ✦</div>
+
+    <div class="lv">
+      <span class="badge">Lv.2</span>
+      <span class="bar"><i></i></span>
+      <span class="txt">初识伙伴</span>
+    </div>
+  </div>
+
+  <!-- 三大核心 -->
+  <div class="core">
+    <div class="cc">
+      <div class="cico i1">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#3f7ba8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 5.5a3.2 3.2 0 0 1 6 1.4 3 3 0 0 1 1.4 5.3A3.1 3.1 0 0 1 16.5 19 3.2 3.2 0 0 1 12 18M12 5.5A3.2 3.2 0 0 0 6 6.9a3 3 0 0 0-1.4 5.3A3.1 3.1 0 0 0 7.5 19 3.2 3.2 0 0 0 12 18M12 5.5V18"/>
+        </svg>
+      </div>
+      <div class="cname">长期记忆</div>
+      <div class="cdesc">五层记忆体系<br/>重启也不会忘记你</div>
+    </div>
+    <div class="cc">
+      <div class="cico i2">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#c4566f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20 11.5a7.5 7.5 0 0 1-10.9 6.7L4 19.5l1.4-4.8A7.5 7.5 0 1 1 20 11.5z"/>
+          <path d="M9 11h.01M12.5 11h.01M16 11h.01"/>
+        </svg>
+      </div>
+      <div class="cname">主动陪伴</div>
+      <div class="cdesc">11 类意图识别<br/>它会想起你，先开口</div>
+    </div>
+    <div class="cc">
+      <div class="cico i3">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#3f8f6a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 19V10M10 19V5M16 19v-6M22 19H2"/>
+        </svg>
+      </div>
+      <div class="cname">成长反馈</div>
+      <div class="cdesc">任务 · 经验 · 徽章<br/>4 个阶段看得见</div>
+    </div>
+  </div>
+
+  <!-- 功能点 -->
+  <div class="feats">
+    <div class="row">
+      <span class="ft"><i class="dotc" style="background:#a9d8f7"></i>自由聊天</span>
+      <span class="ft"><i class="dotc" style="background:#ffc0d2"></i>今日小任务</span>
+      <span class="ft"><i class="dotc" style="background:#aee9cb"></i>成长日记</span>
+    </div>
+    <div class="row">
+      <span class="ft"><i class="dotc" style="background:#e9b94e"></i>8 枚成就徽章</span>
+      <span class="ft"><i class="dotc" style="background:#9c8ad4"></i>本周小结</span>
+      <span class="ft"><i class="dotc" style="background:#f0913c"></i>5 种物种形象</span>
+    </div>
+  </div>
+
+  <!-- 底部 -->
+  <div class="foot">
+    <div class="divider"></div>
+    <div class="frow">
+      <div class="fleft">
+        <div class="ft-t">创建伙伴 · 一起长大</div>
+        <div class="ft-s">登录 / 注册 / 一键体验，30 秒开始你们的故事</div>
+        <div class="safe">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#3f8f6a" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2.8l7.5 3v6c0 4.6-3.2 8.3-7.5 9.4-4.3-1.1-7.5-4.8-7.5-9.4v-6z"/>
+            <path d="M8.8 12.2l2.2 2.2 4.2-4.4"/>
+          </svg>
+          代码级儿童安全防护 · 数据隔离 · 一键清除
+        </div>
+      </div>
+      <div class="stack">
+        <span class="tg">Vue 3 + TypeScript</span>
+        <span class="tg g">Spring Boot 3.3</span>
+        <span class="tg y">CloudBase 云托管</span>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

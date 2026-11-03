@@ -68,7 +68,18 @@
 | user_id / pet_id | BIGINT | 索引 `(pet_id, created_at)` |
 | role | VARCHAR(16) | user/assistant/system |
 | content | VARCHAR(2000) | |
+| message_type | VARCHAR(16) | `normal`（默认）/ `greeting`（欢迎语）/ `session_start`（新对话分隔标记，不展示） |
 | created_at | TIMESTAMP | |
+
+> **为什么需要 `message_type`**：欢迎语去重原先用 `content.startsWith("欢迎回来")` 判断，等于让模型的自由输出承担控制流职责——模型换个说法（如「好久不见呀」）去重就失效，用户会被连续刷欢迎语。改为结构化标记后不再依赖文本内容。
+>
+> `session_start` 用于「开启新对话」：系统消息作为分隔点，读取上下文时只取该标记之后的消息；旧消息与长期记忆不删除。
+
+**升级已有数据库**：两份 schema 均已带 `ALTER TABLE ... ADD COLUMN IF NOT EXISTS`，可重复执行，存量记录自动归为 `normal`，无需停机或回填：
+
+```sql
+ALTER TABLE chat_messages ADD COLUMN IF NOT EXISTS message_type VARCHAR(16) NOT NULL DEFAULT 'normal';
+```
 
 ### memories — 长期记忆
 | 字段 | 类型 | 说明 |

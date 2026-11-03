@@ -54,11 +54,11 @@ export function weekdayLabel(value: string): string {
 
 export function greetingByHour(): string {
   const hour = new Date().getHours()
-  if (hour < 5) return '夜深啦，做个甜甜的梦吧'
-  if (hour < 11) return '早上好，小朋友'
-  if (hour < 14) return '中午好，小朋友'
-  if (hour < 18) return '下午好，小朋友'
-  return '晚上好，小朋友'
+  if (hour < 5) return '夜深啦'
+  if (hour < 11) return '早上好'
+  if (hour < 14) return '中午好'
+  if (hour < 18) return '下午好'
+  return '晚上好'
 }
 
 export function todayLabel(): string {

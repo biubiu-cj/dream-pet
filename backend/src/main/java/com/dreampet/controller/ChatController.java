@@ -44,6 +44,12 @@ public class ChatController {
         return ApiResponse.ok(resp);
     }
 
+    /** 开启新对话：清空当前聊天窗口上下文（长期记忆与历史记录保留） */
+    @PostMapping("/new")
+    public ApiResponse<ChatDtos.HistoryResponse> newConversation() {
+        return ApiResponse.ok(chatService.startNewConversation(UserContext.get()));
+    }
+
     @GetMapping("/history")
     public ApiResponse<ChatDtos.HistoryResponse> history(
             @RequestParam(defaultValue = "50") int limit,

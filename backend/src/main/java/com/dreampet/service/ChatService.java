@@ -60,10 +60,11 @@ public class ChatService {
         // 2. 用户意图识别（规则优先，必要时真实模型兜底）
         Intent intent = intentRecognizer.recognize(message);
 
-        // 3. 组装分层记忆上下文（最近 N 条 + 摘要 + 高重要度事件）
+        // 3. 组装分层记忆上下文（最近 N 条 + 摘要 + 与当前话题相关的高重要度事件）
         List<String> interests = memoryManager.getInterests(userId);
         String summary = memoryManager.getLatestSummary(pet.getId());
-        List<String> events = memoryManager.getImportantEvents(userId, memoryManager.importantEventsLimit());
+        List<String> events = memoryManager.getRelevantEvents(
+                userId, memoryManager.importantEventsLimit(), message);
         List<ChatMessage> recent = memoryManager.getRecentMessages(pet.getId(), memoryManager.recentMessagesLimit());
 
         // 4. 生成回复并做输出安全过滤
@@ -104,14 +105,10 @@ public class ChatService {
             LocalDateTime lastUserTime = memoryManager.getLastChatTime(pet.getId());
             // 10 分钟内已生成过欢迎语则不再重复（防止反复刷新页面刷屏）；
             // 更久之后重新回来仍会生成新的欢迎语。
-            boolean recentlyGreeted = false;
-            if (!messages.isEmpty()) {
-                ChatMessage lastMsg = messages.get(messages.size() - 1);
-                recentlyGreeted = "assistant".equals(lastMsg.getRole())
-                        && lastMsg.getContent().startsWith("欢迎回来")
-                        && lastMsg.getCreatedAt() != null
-                        && lastMsg.getCreatedAt().isAfter(LocalDateTime.now().minusMinutes(10));
-            }
+            // 依据结构化 message_type 判断，不依赖 AI 返回文本的前缀。
+            LocalDateTime lastGreetingTime = memoryManager.getLastGreetingTime(pet.getId());
+            boolean recentlyGreeted = lastGreetingTime != null
+                    && lastGreetingTime.isAfter(LocalDateTime.now().minusMinutes(10));
             if (lastUserTime != null
                     && !recentlyGreeted
                     && lastUserTime.isBefore(LocalDateTime.now()
@@ -125,7 +122,8 @@ public class ChatService {
                             lastTask == null ? null : lastTask.getTitle(),
                             memoryManager.getImportantEvents(userId, 5),
                             days);
-                    memoryManager.saveChatMessage(userId, pet.getId(), "assistant", greetingText);
+                    memoryManager.saveChatMessage(userId, pet.getId(), "assistant", greetingText,
+                            ChatMessage.TYPE_GREETING);
                     messages = memoryManager.getRecentMessages(pet.getId(), safeLimit);
                 } catch (Exception e) {
                     log.warn("欢迎语生成失败: {}", e.getMessage());
@@ -137,6 +135,27 @@ public class ChatService {
         ChatDtos.HistoryResponse resp = new ChatDtos.HistoryResponse();
         resp.setMessages(messages.stream().map(this::toMessageDTO).toList());
         resp.setGreeting(greetingText);
+        return resp;
+    }
+
+    /**
+     * 开启新对话：写入 session_start 分隔标记，清空当前聊天窗口的上下文。
+     * 只影响聊天窗口；长期记忆、成长记录、历史消息仍保留在数据库与成长日记中。
+     */
+    public ChatDtos.HistoryResponse startNewConversation(Long userId) {
+        Pet pet = petService.findPet(userId);
+        if (pet == null) {
+            throw BizException.notFound("还没有伙伴");
+        }
+        memoryManager.saveChatMessage(userId, pet.getId(), "system", "新对话开始",
+                ChatMessage.TYPE_SESSION_START);
+        String opener = "我是" + pet.getName() + "！我们开始新的对话吧，今天想聊点什么？";
+        memoryManager.saveChatMessage(userId, pet.getId(), "assistant", opener);
+
+        ChatDtos.HistoryResponse resp = new ChatDtos.HistoryResponse();
+        resp.setMessages(memoryManager.getRecentMessages(pet.getId(), 50)
+                .stream().map(this::toMessageDTO).toList());
+        resp.setGreeting(null);
         return resp;
     }
 

@@ -34,3 +34,8 @@ Thumbs.db
 # ---------- Claude Code 本地配置 ----------
 .claude/settings.local.json
 .claude/worktrees/
+
+# ---------- 本地临时/预览产物（正式产物在 docs/brand/）----------
+.box-agent-scratch/
+/cover.png
+/poster.png

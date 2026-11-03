@@ -16,6 +16,9 @@ RUN useradd --system --uid 1000 dreampet && chown -R dreampet /app
 USER dreampet
 COPY --from=build /build/target/*.jar /app/app.jar
 
+# 镜像默认以生产 profile 启动，避免容器/云托管漏传 SPRING_PROFILES_ACTIVE 时退回本地 H2。
+# 生产仍建议在云托管环境变量中显式设置 SPRING_PROFILES_ACTIVE=prod（覆盖此默认值无影响）。
+ENV SPRING_PROFILES_ACTIVE=prod
 # 云托管可通过环境变量 PORT 注入端口（默认 8080）
 ENV PORT=8080
 EXPOSE 8080

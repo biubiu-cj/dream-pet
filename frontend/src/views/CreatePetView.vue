@@ -164,9 +164,9 @@ async function submit() {
 .eyebrow {
   display: inline-block;
   padding: 4px 14px;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: rgba(255, 255, 255, 0.75);
-  color: #5d93bd;
+  color: #2f76ad;
   font-size: 12px;
   font-weight: 800;
   letter-spacing: 1px;
@@ -203,7 +203,7 @@ async function submit() {
   display: flex;
   justify-content: center;
   padding: 10px 0 0;
-  border-radius: 22px;
+  border-radius: var(--radius-lg);
   background: radial-gradient(circle at 50% 62%, rgba(223, 241, 255, 0.85), rgba(255, 255, 255, 0.2) 70%);
 }
 
@@ -254,7 +254,7 @@ async function submit() {
 
 .preview-hint {
   margin-top: 12px;
-  font-size: 11.5px;
+  font-size: 12.5px;
   font-weight: 700;
   color: var(--ink-faint);
   line-height: 1.6;
@@ -276,7 +276,7 @@ async function submit() {
 }
 
 .block-title small {
-  font-size: 11.5px;
+  font-size: 12.5px;
   color: var(--ink-faint);
   font-weight: 700;
 }
@@ -293,10 +293,10 @@ async function submit() {
   align-items: center;
   gap: 2px;
   padding: 10px 6px 9px;
-  border-radius: 20px;
+  border-radius: var(--radius-md);
   background: rgba(255, 255, 255, 0.7);
   border: 2px solid transparent;
-  transition: all 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition: all 0.22s var(--ease-spring);
 }
 
 .species-item:hover {
@@ -306,7 +306,7 @@ async function submit() {
 .species-item.active {
   border-color: var(--tint);
   background: #ffffff;
-  box-shadow: 0 12px 26px rgba(118, 148, 182, 0.18);
+  box-shadow: var(--elev-2);
   transform: translateY(-3px) scale(1.03);
 }
 
@@ -324,7 +324,7 @@ async function submit() {
 }
 
 .species-blurb {
-  font-size: 10px;
+  font-size: 12px;
   color: var(--ink-faint);
   font-weight: 700;
   text-align: center;
@@ -354,7 +354,7 @@ async function submit() {
 .personality-item {
   text-align: left;
   padding: 12px 15px;
-  border-radius: 18px;
+  border-radius: var(--radius-md);
   background: rgba(255, 255, 255, 0.7);
   border: 2px solid transparent;
   display: flex;
@@ -368,7 +368,7 @@ async function submit() {
 }
 
 .personality-item span {
-  font-size: 11.5px;
+  font-size: 12.5px;
   color: var(--ink-faint);
   font-weight: 600;
 }
@@ -376,7 +376,7 @@ async function submit() {
 .personality-item.active {
   border-color: #a9d8f7;
   background: #ffffff;
-  box-shadow: 0 10px 22px rgba(118, 148, 182, 0.14);
+  box-shadow: var(--elev-2);
 }
 
 .create-btn {

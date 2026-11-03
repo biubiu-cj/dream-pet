@@ -17,3 +17,11 @@ export function getChatHistory(limit = 50, greeting = false) {
     params: { limit, greeting },
   })
 }
+
+/** 开启新对话：清空当前聊天窗口上下文，长期记忆保留 */
+export function startNewConversation() {
+  return request<ChatHistory>({
+    url: '/chat/new',
+    method: 'post',
+  })
+}

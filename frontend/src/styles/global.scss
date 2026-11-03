@@ -13,14 +13,39 @@
   --sun-deep: #e9b94e;
   --lavender: #e6ddfb;
   --lavender-deep: #9c8ad4;
-  --ink: #463d52;
-  --ink-soft: #7d7189;
-  --ink-faint: #a99eb5;
-  --card: rgba(255, 255, 255, 0.86);
+
+  /* ---- 文字层级：收敛为 4 档，对比度均 ≥4.5:1（含半透明卡底）---- */
+  --ink: #403748;
+  --ink-soft: #5f5569;      /* 6.9:1 */
+  --ink-faint: #746983;     /* 5.1:1，替代原 #a99eb5 的 2.9:1 */
+
+  --card: rgba(255, 255, 255, 0.92);
   --card-solid: #ffffff;
-  --shadow-soft: 0 16px 40px rgba(118, 148, 182, 0.16);
-  --shadow-card: 0 10px 26px rgba(118, 148, 182, 0.13);
-  --radius-lg: 28px;
+  --hairline: rgba(123, 146, 177, 0.14);
+
+  /* ---- 阴影：三档明确层级（原先只有一档，卡片层次塌陷）---- */
+  --elev-1: 0 1px 2px rgba(60, 82, 112, 0.05), 0 2px 8px rgba(60, 82, 112, 0.045);
+  --elev-2: 0 2px 6px rgba(60, 82, 112, 0.06), 0 12px 28px rgba(60, 82, 112, 0.09);
+  --elev-3: 0 4px 10px rgba(60, 82, 112, 0.08), 0 18px 40px rgba(60, 82, 112, 0.13);
+
+  /* 兼容旧变量名 */
+  --shadow-soft: var(--elev-2);
+  --shadow-card: var(--elev-1);
+
+  /* ---- 圆角：三档（大卡 / 小卡·按钮 / pill）---- */
+  --radius-lg: 24px;
+  --radius-md: 16px;
+  --radius-sm: 12px;
+  --radius-pill: 999px;
+
+  /* ---- 间距节奏：8 的倍数 ---- */
+  --sp-1: 8px;
+  --sp-2: 16px;
+  --sp-3: 24px;
+  --sp-4: 32px;
+  --sp-5: 40px;
+
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 * {
@@ -105,106 +130,170 @@ select {
   width: 100%;
   max-width: 1080px;
   margin: 0 auto;
-  padding: 24px clamp(16px, 4vw, 36px) 120px;
+  /* 底部留白需大于悬浮导航高度(74px)+安全间距，避免导航压住页面末尾的内容与按钮 */
+  padding: var(--sp-3) clamp(16px, 4vw, 36px) 132px;
   position: relative;
   z-index: 2;
 }
 
+/* 内容卡：Level 1，靠细描边与极淡投影确立边界 */
 .card {
   background: var(--card);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(14px) saturate(1.1);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-md);
+  box-shadow: var(--elev-1);
+}
+
+/* 主卡：Level 2，用更明显的渐变底与投影和内容卡区分开 */
+.card-feature {
+  background:
+    linear-gradient(168deg, rgba(255, 255, 255, 0.98) 0%, rgba(247, 251, 255, 0.95) 48%, rgba(255, 250, 242, 0.96) 100%);
+  backdrop-filter: blur(16px) saturate(1.1);
+  border: 1px solid rgba(255, 255, 255, 0.95);
   border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-card);
+  box-shadow: var(--elev-2), inset 0 1px 0 rgba(255, 255, 255, 0.9);
 }
 
 .btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  padding: 13px 26px;
-  border-radius: 999px;
+  gap: var(--sp-1);
+  min-height: 44px;
+  padding: 0 24px;
+  border-radius: var(--radius-pill);
   font-weight: 800;
-  font-size: 16px;
-  letter-spacing: 0.3px;
-  transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s;
+  font-size: 15px;
+  letter-spacing: 0.2px;
+  transition: transform 0.18s var(--ease-spring), box-shadow 0.22s, filter 0.2s;
   user-select: none;
 }
 
 .btn:hover {
-  transform: translateY(-2px) scale(1.02);
+  transform: translateY(-2px);
 }
 
 .btn:active {
-  transform: translateY(1px) scale(0.98);
+  transform: translateY(1px) scale(0.985);
 }
 
 .btn:disabled {
-  opacity: 0.55;
+  opacity: 0.5;
   cursor: not-allowed;
   transform: none;
+  box-shadow: none;
 }
 
+/* 主 CTA：加深至白字对比度 ≥4.5:1（实测 #2f76ad 为 4.87:1） */
 .btn-primary {
-  background: linear-gradient(135deg, #7fb9e6, #a8d5f5 55%, #b8e3d2);
-  color: #23506e;
-  box-shadow: 0 12px 26px rgba(107, 160, 205, 0.35);
+  background: linear-gradient(135deg, #2f76ad 0%, #3a86bd 55%, #3f9087 100%);
+  color: #fff;
+  box-shadow: 0 6px 16px rgba(47, 118, 173, 0.34);
+}
+
+.btn-primary:hover {
+  background: linear-gradient(135deg, #356ea0 0%, #3f8cc4 55%, #45998f 100%);
+  box-shadow: 0 10px 24px rgba(47, 118, 173, 0.42);
 }
 
 .btn-sun {
-  background: linear-gradient(135deg, #ffd97a, #ffe9a8);
-  color: #7c5a17;
-  box-shadow: 0 12px 26px rgba(233, 185, 78, 0.35);
+  background: linear-gradient(135deg, #f5bd4f, #ffd97a);
+  color: #6b4a0f;
+  box-shadow: 0 6px 16px rgba(233, 185, 78, 0.34);
+}
+
+.btn-sun:hover {
+  box-shadow: 0 10px 24px rgba(233, 185, 78, 0.42);
 }
 
 .btn-pink {
-  background: linear-gradient(135deg, #ffc0d2, #ffd9e3);
-  color: #93465f;
-  box-shadow: 0 12px 26px rgba(242, 160, 182, 0.35);
+  background: linear-gradient(135deg, #f49fb8, #ffc3d5);
+  color: #7d3350;
+  box-shadow: 0 6px 16px rgba(242, 160, 182, 0.34);
 }
 
 .btn-ghost {
-  background: rgba(255, 255, 255, 0.72);
+  background: rgba(255, 255, 255, 0.82);
   color: var(--ink-soft);
-  box-shadow: 0 8px 20px rgba(118, 148, 182, 0.12);
+  border: 1px solid var(--hairline);
+  box-shadow: var(--elev-1);
+}
+
+.btn-ghost:hover {
+  background: #fff;
+  color: var(--ink);
+}
+
+/* 次级文字按钮：替代与主 CTA 等重的并列按钮 */
+.btn-quiet {
+  min-height: 40px;
+  padding: 0 14px;
+  background: none;
+  color: var(--sky-ink);
+  font-weight: 800;
+  font-size: 14px;
+  border-radius: var(--radius-pill);
+  transition: background 0.2s, color 0.2s;
+}
+
+.btn-quiet:hover {
+  background: rgba(169, 216, 247, 0.22);
+  color: #3f7ba8;
 }
 
 .btn-soft {
-  background: rgba(255, 255, 255, 0.6);
+  background: rgba(255, 255, 255, 0.72);
   color: var(--sky-ink);
-  border: 1.5px dashed rgba(93, 147, 189, 0.4);
+  border: 1.5px dashed rgba(93, 147, 189, 0.38);
 }
 
 .chip {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 7px 15px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.75);
+  padding: 6px 13px;
+  border-radius: var(--radius-pill);
+  background: rgba(255, 255, 255, 0.82);
   color: var(--ink-soft);
   font-weight: 700;
-  font-size: 14px;
-  border: 1.5px solid transparent;
+  font-size: 13px;
+  border: 1px solid var(--hairline);
 }
 
 .section-title {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  margin: 30px 0 14px;
+  gap: var(--sp-2);
+  margin: var(--sp-4) 0 var(--sp-2);
 }
 
 .section-title h2 {
-  font-size: clamp(19px, 2.4vw, 23px);
+  font-size: clamp(18px, 2.2vw, 21px);
+  letter-spacing: 0.3px;
 }
 
 .section-title .hint {
   color: var(--ink-faint);
   font-size: 13px;
   font-weight: 700;
+}
+
+/* 统一的「更多」文字入口，避免同页出现多套链接样式 */
+.link-more {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  color: #2b6c9f;
+  font-size: 13.5px;
+  font-weight: 800;
+  transition: gap 0.2s, color 0.2s;
+}
+
+.link-more:hover {
+  gap: 7px;
+  color: #22577f;
 }
 
 .field {
@@ -222,10 +311,10 @@ select {
 .input,
 .textarea {
   width: 100%;
-  padding: 14px 18px;
-  border-radius: 18px;
-  border: 2px solid rgba(169, 216, 247, 0.55);
-  background: rgba(255, 255, 255, 0.9);
+  padding: 13px 16px;
+  border-radius: var(--radius-sm);
+  border: 1.5px solid rgba(123, 146, 177, 0.22);
+  background: rgba(255, 255, 255, 0.94);
   transition: border-color 0.2s, box-shadow 0.2s;
   outline: none;
   font-weight: 600;
@@ -234,7 +323,7 @@ select {
 .input:focus,
 .textarea:focus {
   border-color: #8cc5ee;
-  box-shadow: 0 0 0 4px rgba(169, 216, 247, 0.35);
+  box-shadow: 0 0 0 3px rgba(169, 216, 247, 0.32);
 }
 
 .textarea {
@@ -243,12 +332,13 @@ select {
 }
 
 .error-text {
-  color: #c4566f;
+  color: #b94a63;
   font-size: 14px;
   font-weight: 700;
-  background: rgba(255, 213, 224, 0.5);
+  background: rgba(255, 213, 224, 0.45);
+  border: 1px solid rgba(242, 160, 182, 0.3);
   padding: 10px 14px;
-  border-radius: 14px;
+  border-radius: var(--radius-sm);
 }
 
 .muted {

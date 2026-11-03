@@ -25,6 +25,12 @@ const pet = computed(() => petStore.pet)
 const mood = computed(() => moodMeta(pet.value?.mood))
 const activeTask = computed(() => tasksStore.activeTask)
 
+/** 游客账号形如「小探险家69592」，问候语里隐去随机数字，避免把自动生成 ID 当作昵称展示 */
+const displayName = computed(() => {
+  const name = auth.username || '小探险家'
+  return name.replace(/\d{3,}$/, '')
+})
+
 onMounted(async () => {
   await Promise.all([petStore.load(), tasksStore.loadToday()])
   eventsLoading.value = true
@@ -50,7 +56,7 @@ async function designTask() {
     <header class="home-top">
       <div>
         <p class="date-line">{{ todayLabel() }}</p>
-        <h1>{{ greetingByHour() }}，{{ auth.username || '小探险家' }}</h1>
+        <h1>{{ greetingByHour() }}<span class="greet-comma">，</span>{{ displayName }}</h1>
       </div>
       <button class="avatar-btn" @click="router.push('/settings')" aria-label="伙伴设置">
         <span>{{ (auth.username || 'D')[0] }}</span>
@@ -60,7 +66,7 @@ async function designTask() {
     <div v-if="petStore.error" class="error-text">{{ petStore.error }}</div>
 
     <template v-if="pet">
-      <section class="hero card">
+      <section class="hero card-feature">
         <div class="hero-pet">
           <div class="pet-halo"></div>
           <PetAvatar
@@ -76,13 +82,11 @@ async function designTask() {
         </div>
 
         <div class="hero-info">
-          <p class="meet-line">我的梦想伙伴</p>
-          <h2>{{ pet.name }}</h2>
-          <p class="tags">
-            <span class="chip">{{ pet.speciesName }}</span>
-            <span class="chip">{{ pet.personalityName }}</span>
+          <div class="hero-name-row">
+            <h2>{{ pet.name }}</h2>
             <span class="chip mood-chip">{{ mood.label }}中</span>
-          </p>
+          </div>
+          <p class="hero-sub">{{ pet.speciesName }} · {{ pet.personalityName }}</p>
           <GrowthBar
             :level="pet.level"
             :percent="pet.levelProgress"
@@ -96,7 +100,7 @@ async function designTask() {
               </svg>
               和{{ pet.name }}聊天
             </button>
-            <button class="btn btn-ghost" @click="router.push('/growth')">成长档案</button>
+            <button class="link-more" @click="router.push('/growth')">成长档案 →</button>
           </div>
           </div>
       </section>
@@ -131,8 +135,8 @@ async function designTask() {
         <button class="quick-card" @click="router.push('/settings')">
           <span class="quick-icon settings">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="12" cy="12" r="3.2" />
-              <path d="M19.4 13.5a7.6 7.6 0 0 0 0-3l1.7-1.3-1.8-3.1-2 .8a7.6 7.6 0 0 0-2.6-1.5L14.4 3h-3.6l-.3 2.2a7.6 7.6 0 0 0-2.6 1.5l-2-.8L4 9l1.7 1.3a7.6 7.6 0 0 0 0 3L4 14.6l1.8 3.1 2-.8a7.6 7.6 0 0 0 2.6 1.5l.3 2.2h3.6l.3-2.2a7.6 7.6 0 0 0 2.6-1.5l2 .8 1.8-3.1z" />
+              <circle cx="12" cy="8.5" r="3.6" />
+              <path d="M5.5 20c0-3.4 2.9-5.6 6.5-5.6s6.5 2.2 6.5 5.6" />
             </svg>
           </span>
           <span><strong>我的伙伴</strong><small>更换形象和档案</small></span>
@@ -158,7 +162,7 @@ async function designTask() {
 
       <div class="section-title">
         <h2>最近几天</h2>
-        <button class="hint link" @click="router.push('/diary')">全部日记</button>
+        <button class="link-more" @click="router.push('/diary')">全部日记 →</button>
       </div>
 
       <div v-if="eventsLoading" class="card recent-card muted">正在整理这几天的回忆…</div>
@@ -209,20 +213,26 @@ async function designTask() {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
-  margin-bottom: 18px;
+  gap: var(--sp-2);
+  margin-bottom: var(--sp-3);
 }
 
 .date-line {
-  font-size: 12.5px;
-  font-weight: 800;
+  font-size: 13px;
+  font-weight: 700;
   color: var(--ink-faint);
-  letter-spacing: 0.5px;
+  letter-spacing: 0.4px;
 }
 
 .home-top h1 {
-  font-size: clamp(22px, 3.2vw, 30px);
-  margin-top: 2px;
+  font-size: clamp(22px, 3.2vw, 28px);
+  margin-top: 3px;
+}
+
+.greet-comma {
+  color: var(--ink-faint);
+  font-weight: 600;
+  margin: 0 1px;
 }
 
 .avatar-btn {
@@ -230,12 +240,13 @@ async function designTask() {
   width: 46px;
   height: 46px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #ffd97a, #ffc0d2);
+  background: linear-gradient(140deg, #ffd97a, #f8b0c6);
   color: #7c4a5e;
   font-weight: 900;
   font-size: 18px;
-  box-shadow: 0 10px 24px rgba(242, 160, 182, 0.35);
-  transition: transform 0.2s;
+  border: 2px solid rgba(255, 255, 255, 0.95);
+  box-shadow: var(--elev-2);
+  transition: transform 0.22s var(--ease-spring);
 }
 
 .avatar-btn:hover {
@@ -244,9 +255,9 @@ async function designTask() {
 
 .hero {
   display: grid;
-  grid-template-columns: 0.9fr 1.1fr;
-  gap: 18px;
-  padding: clamp(18px, 3vw, 30px);
+  grid-template-columns: 0.82fr 1fr;
+  gap: var(--sp-2);
+  padding: clamp(20px, 2.6vw, 28px);
   overflow: hidden;
   position: relative;
 }
@@ -258,7 +269,7 @@ async function designTask() {
   right: -10%;
   width: 60%;
   height: 160%;
-  background: radial-gradient(circle, rgba(255, 236, 190, 0.35), transparent 65%);
+  background: radial-gradient(circle, rgba(255, 236, 190, 0.28), transparent 65%);
   pointer-events: none;
 }
 
@@ -267,7 +278,8 @@ async function designTask() {
   display: flex;
   align-items: flex-end;
   justify-content: center;
-  min-height: 280px;
+  min-height: 316px;
+  padding-top: 36px;
 }
 
 .pet-halo {
@@ -281,21 +293,42 @@ async function designTask() {
   background: radial-gradient(circle at 50% 62%, rgba(223, 241, 255, 0.95), rgba(255, 255, 255, 0) 68%);
 }
 
+/* 气泡置于角色头部上方，不压住插画 */
 .speech-bubble {
   position: absolute;
-  top: 2px;
-  left: 0;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 3;
   display: inline-flex;
   align-items: center;
   gap: 7px;
   padding: 9px 15px;
-  border-radius: 18px 18px 18px 4px;
-  background: rgba(255, 255, 255, 0.95);
-  box-shadow: 0 10px 24px rgba(118, 148, 182, 0.16);
-  font-size: 12.5px;
+  border-radius: var(--radius-pill);
+  background: #fff;
+  border: 1px solid var(--hairline);
+  box-shadow: var(--elev-2);
+  font-size: 13px;
   font-weight: 800;
   color: var(--ink-soft);
+  white-space: nowrap;
   animation: bubble-breathe 4.6s ease-in-out infinite;
+}
+
+/* 指向角色的小尾巴 */
+.speech-bubble::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: -5px;
+  width: 10px;
+  height: 10px;
+  margin-left: -5px;
+  background: #fff;
+  border-right: 1px solid var(--hairline);
+  border-bottom: 1px solid var(--hairline);
+  transform: rotate(45deg);
+  border-radius: 0 0 3px 0;
 }
 
 .mood-dot {
@@ -310,39 +343,49 @@ async function designTask() {
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: var(--sp-2);
   justify-content: center;
-  padding: 8px 0;
+  padding: var(--sp-1) 0;
 }
 
-.meet-line {
-  font-size: 11.5px;
-  font-weight: 800;
-  letter-spacing: 2px;
-  color: var(--ink-faint);
+.hero-name-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
 }
 
 .hero-info h2 {
-  font-size: clamp(28px, 4vw, 38px);
+  font-size: clamp(28px, 4vw, 36px);
   line-height: 1.1;
 }
 
-.tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 7px;
+.hero-sub {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ink-faint);
+  letter-spacing: 0.3px;
+  margin-top: -8px;
 }
 
 .mood-chip {
-  background: rgba(216, 245, 228, 0.8);
-  color: #3f7d62;
+  background: rgba(216, 245, 228, 0.9);
+  color: #2f6f55;
+  border-color: rgba(124, 201, 164, 0.32);
 }
 
 .hero-actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
-  margin-top: 4px;
+  align-items: center;
+  gap: 14px;
+  margin-top: var(--sp-1);
+}
+
+.hero-actions .btn-primary {
+  min-height: 48px;
+  padding: 0 28px;
+  font-size: 16px;
 }
 
 .hero-actions .btn svg {
@@ -353,32 +396,32 @@ async function designTask() {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 12px;
-  margin-top: 16px;
+  margin-top: var(--sp-3);
 }
 
 .quick-card {
   display: flex;
   align-items: center;
-  gap: 11px;
+  gap: 12px;
   text-align: left;
-  padding: 14px 15px;
-  border-radius: 20px;
-  background: rgba(255, 255, 255, 0.78);
-  border: 1px solid rgba(255, 255, 255, 0.9);
-  box-shadow: 0 10px 24px rgba(118, 148, 182, 0.1);
-  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s;
+  padding: 16px;
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid var(--hairline);
+  box-shadow: var(--elev-1);
+  transition: transform 0.22s var(--ease-spring), box-shadow 0.22s;
 }
 
 .quick-card:hover {
   transform: translateY(-3px);
-  box-shadow: 0 16px 32px rgba(118, 148, 182, 0.18);
+  box-shadow: var(--elev-2);
 }
 
 .quick-icon {
   flex: none;
   width: 42px;
   height: 42px;
-  border-radius: 14px;
+  border-radius: var(--radius-sm);
   display: grid;
   place-items: center;
 }
@@ -388,38 +431,40 @@ async function designTask() {
   height: 21px;
 }
 
+/* 图标底板用 10% 主色，glyph 用饱和主色，避免图标发灰 */
 .quick-icon.chat {
-  background: #e1f2ff;
-  color: #4e8ab8;
+  background: rgba(93, 147, 189, 0.12);
+  color: #3f7ba8;
 }
 
 .quick-icon.task {
-  background: #fff0d6;
-  color: #b07a3d;
+  background: rgba(233, 185, 78, 0.16);
+  color: #a9771f;
 }
 
 .quick-icon.diary {
-  background: #fbe7f4;
-  color: #b8739f;
+  background: rgba(242, 160, 182, 0.16);
+  color: #b05377;
 }
 
 .quick-icon.settings {
-  background: #eae4ff;
-  color: #7a6bbf;
+  background: rgba(156, 138, 212, 0.16);
+  color: #6f5cb8;
 }
 
 .quick-card strong {
   display: block;
-  font-size: 13.5px;
+  font-size: 14px;
   font-weight: 800;
 }
 
 .quick-card small {
   display: block;
-  font-size: 10.5px;
+  font-size: 12px;
   color: var(--ink-faint);
   font-weight: 700;
   white-space: nowrap;
+  margin-top: 1px;
 }
 
 .day-list {
@@ -429,15 +474,15 @@ async function designTask() {
 }
 
 .day-card {
-  padding: 15px 18px;
-  border-radius: 20px;
+  padding: 16px 18px;
+  border-radius: var(--radius-md);
   position: relative;
   overflow: hidden;
 }
 
 .day-card.milestone {
-  border: 1.5px solid rgba(255, 217, 122, 0.55);
-  background: linear-gradient(160deg, rgba(255, 253, 247, 0.95), rgba(255, 246, 228, 0.88));
+  border-color: rgba(233, 185, 78, 0.4);
+  background: linear-gradient(160deg, rgba(255, 253, 247, 0.96), rgba(255, 246, 228, 0.9));
 }
 
 .day-head {
@@ -449,8 +494,9 @@ async function designTask() {
 
 .day-date {
   display: flex;
-  flex-direction: column;
-  gap: 1px;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
 }
 
 .day-date strong {
@@ -458,39 +504,40 @@ async function designTask() {
 }
 
 .day-date span {
-  font-size: 10.5px;
+  font-size: 12px;
   color: var(--ink-faint);
   font-weight: 700;
   letter-spacing: 0.3px;
 }
 
 .milestone-tag {
-  font-size: 10.5px;
+  font-size: 12px;
   font-weight: 800;
-  color: #8a6418;
-  background: rgba(255, 232, 163, 0.6);
-  padding: 3px 10px;
-  border-radius: 999px;
+  color: #7a5713;
+  background: rgba(255, 232, 163, 0.75);
+  padding: 4px 11px;
+  border-radius: var(--radius-pill);
   white-space: nowrap;
 }
 
 .day-stats {
   display: flex;
   flex-wrap: wrap;
-  gap: 7px;
-  margin-top: 9px;
+  gap: 8px;
+  margin-top: 12px;
 }
 
 .day-stat {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  font-size: 11.5px;
+  gap: 6px;
+  font-size: 12.5px;
   font-weight: 800;
   color: var(--ink-soft);
-  background: rgba(255, 255, 255, 0.7);
-  border-radius: 999px;
-  padding: 3px 10px;
+  background: rgba(255, 255, 255, 0.86);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-pill);
+  padding: 4px 11px;
 }
 
 .stat-dot {
@@ -508,7 +555,7 @@ async function designTask() {
 }
 
 .day-stat.exp {
-  color: #b5892e;
+  color: #8a6620;
   background: rgba(255, 232, 163, 0.5);
 }
 
@@ -522,29 +569,29 @@ async function designTask() {
 }
 
 .day-highlights li {
-  font-size: 12.5px;
+  font-size: 13px;
   font-weight: 600;
   color: var(--ink-soft);
   display: flex;
-  gap: 6px;
-  line-height: 1.5;
+  gap: 7px;
+  line-height: 1.55;
 }
 
 .highlight-star {
-  color: #e9b94e;
+  color: #966e13;
   flex: none;
-  font-size: 11px;
-  margin-top: 1px;
+  font-size: 12px;
+  margin-top: 2px;
 }
 
 .recent-card {
   padding: 20px;
   font-weight: 700;
-  font-size: 13px;
+  font-size: 14px;
 }
 
 .link {
-  color: #5d93bd;
+  color: #3f7ba8;
   font-weight: 800;
 }
 
@@ -562,13 +609,14 @@ async function designTask() {
   font-weight: 700;
 }
 
+/* 气泡已用 translateX(-50%) 居中，动画需保留该位移 */
 @keyframes bubble-breathe {
   0%,
   100% {
-    transform: translateY(0);
+    transform: translate(-50%, 0);
   }
   50% {
-    transform: translateY(-5px);
+    transform: translate(-50%, -5px);
   }
 }
 

@@ -153,7 +153,7 @@ async function complete() {
   align-items: center;
   gap: 5px;
   padding: 8px 14px 8px 10px;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: rgba(255, 255, 255, 0.7);
   color: var(--ink-soft);
   font-weight: 800;
@@ -202,7 +202,7 @@ async function complete() {
   color: var(--accent);
   background: var(--accent-bg);
   padding: 3px 12px;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
 }
 
 .status {
@@ -240,7 +240,7 @@ async function complete() {
 }
 
 .meta-label {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 800;
   color: var(--ink-faint);
   letter-spacing: 1px;
@@ -270,10 +270,10 @@ async function complete() {
 
 .reward {
   font-weight: 900;
-  color: #b5892e;
+  color: #8a6620;
   background: rgba(255, 232, 163, 0.5);
   padding: 2px 12px;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   font-size: 13px;
 }
 
@@ -310,7 +310,7 @@ async function complete() {
 
 .gentle {
   text-align: center;
-  font-size: 11.5px;
+  font-size: 12px;
   color: var(--ink-faint);
   font-weight: 700;
 }
@@ -352,7 +352,7 @@ async function complete() {
   font-size: 12px;
   font-weight: 900;
   padding: 3px 12px;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: rgba(255, 232, 163, 0.6);
   color: #9a6f1c;
 }

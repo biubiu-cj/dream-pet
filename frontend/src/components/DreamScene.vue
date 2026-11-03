@@ -39,11 +39,11 @@ const stars = Array.from({ length: 26 }, (_, index) => ({
     <svg class="hills" viewBox="0 0 1440 280" preserveAspectRatio="none">
       <path
         d="M0,190 C170,120 300,230 470,170 C650,105 760,205 940,160 C1110,118 1240,205 1440,140 L1440,280 L0,280 Z"
-        fill="rgba(190, 230, 205, 0.75)"
+        fill="rgba(206, 236, 219, 0.5)"
       />
       <path
         d="M0,225 C190,180 340,250 520,215 C720,175 880,245 1060,210 C1230,178 1340,235 1440,205 L1440,280 L0,280 Z"
-        fill="rgba(160, 216, 184, 0.85)"
+        fill="rgba(185, 225, 204, 0.55)"
       />
     </svg>
   </div>
@@ -55,7 +55,10 @@ const stars = Array.from({ length: 26 }, (_, index) => ({
   inset: 0;
   z-index: 0;
   overflow: hidden;
-  background: linear-gradient(180deg, #e7f5ff 0%, #f3f9ff 38%, #fff6ea 74%, #fdf1df 100%);
+  background:
+    radial-gradient(1100px 700px at 12% -8%, #eef8ff 0%, rgba(238, 248, 255, 0) 62%),
+    radial-gradient(900px 640px at 92% 4%, #fff6e8 0%, rgba(255, 246, 232, 0) 58%),
+    linear-gradient(180deg, #f2f9ff 0%, #f7fbff 46%, #fdf7ef 100%);
   pointer-events: none;
 }
 
@@ -66,27 +69,29 @@ const stars = Array.from({ length: 26 }, (_, index) => ({
   width: 120%;
   height: 75%;
   background:
-    radial-gradient(circle at 22% 30%, rgba(255, 255, 255, 0.85), transparent 45%),
-    radial-gradient(circle at 78% 18%, rgba(255, 236, 190, 0.55), transparent 48%);
+    radial-gradient(circle at 22% 30%, rgba(255, 255, 255, 0.6), transparent 45%),
+    radial-gradient(circle at 78% 18%, rgba(255, 236, 190, 0.3), transparent 48%);
 }
 
+/* 太阳降为柔和氛围光斑：不再是抢视线的高亮色块，也不会被画布裁出硬边 */
 .sun {
   position: absolute;
-  top: 7%;
-  right: 8%;
-  width: 108px;
-  height: 108px;
+  top: 5%;
+  right: 7%;
+  width: 180px;
+  height: 180px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(255, 236, 168, 0.95), rgba(255, 226, 140, 0.25) 62%, transparent 72%);
-  animation: sun-breathe 7s ease-in-out infinite;
+  background: radial-gradient(circle, rgba(255, 233, 168, 0.4) 0%, rgba(255, 226, 140, 0.14) 46%, transparent 70%);
+  filter: blur(6px);
+  animation: sun-breathe 9s ease-in-out infinite;
 }
 
 .sun-core {
   position: absolute;
-  inset: 26%;
+  inset: 34%;
   border-radius: 50%;
-  background: linear-gradient(145deg, #ffe9a8, #ffd97a);
-  box-shadow: 0 0 40px rgba(255, 217, 122, 0.85);
+  background: radial-gradient(circle, rgba(255, 240, 190, 0.5), rgba(255, 217, 122, 0.18) 70%, transparent);
+  box-shadow: 0 0 36px rgba(255, 217, 122, 0.3);
 }
 
 .stars {
@@ -98,17 +103,17 @@ const stars = Array.from({ length: 26 }, (_, index) => ({
   position: absolute;
   border-radius: 50%;
   background: #ffffff;
-  box-shadow: 0 0 8px rgba(255, 255, 255, 0.95);
+  box-shadow: 0 0 6px rgba(255, 255, 255, 0.8);
+  opacity: 0.6;
   animation: twinkle 4s ease-in-out infinite;
 }
 
 .cloud {
   position: absolute;
   height: 52px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.78);
-  filter: blur(1px);
-  box-shadow: 0 18px 40px rgba(150, 185, 220, 0.18);
+  border-radius: var(--radius-pill);
+  background: rgba(255, 255, 255, 0.5);
+  filter: blur(3px);
 }
 
 .cloud::before,
@@ -135,33 +140,37 @@ const stars = Array.from({ length: 26 }, (_, index) => ({
 
 .cloud-a {
   width: 168px;
-  top: 16%;
+  top: 14%;
   left: 6%;
   animation: drift 32s linear infinite;
 }
 
 .cloud-b {
   width: 128px;
-  top: 30%;
+  top: 28%;
   left: 58%;
-  opacity: 0.8;
+  opacity: 0.6;
   animation: drift 44s linear infinite reverse;
 }
 
 .cloud-c {
   width: 196px;
-  top: 8%;
+  top: 7%;
   left: 44%;
-  opacity: 0.55;
+  opacity: 0.4;
   animation: drift 56s linear infinite;
 }
 
+/* 山丘淡化为底部氛围带，并用遮罩羽化上沿，避免与卡片中段形成假横线 */
 .hills {
   position: absolute;
   bottom: 0;
   left: 0;
   width: 100%;
-  height: 240px;
+  height: 170px;
+  opacity: 0.42;
+  mask-image: linear-gradient(180deg, transparent 0%, #000 55%);
+  -webkit-mask-image: linear-gradient(180deg, transparent 0%, #000 55%);
 }
 
 @keyframes twinkle {

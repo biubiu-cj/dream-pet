@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import { getChatHistory, sendChat } from '@/api/chat'
+import { getChatHistory, sendChat, startNewConversation } from '@/api/chat'
 import type { ChatMessage, Task } from '@/api/types'
 import { usePetStore } from './pet'
 
@@ -55,6 +55,22 @@ export const useChatStore = defineStore('chat', () => {
     canSuggestTask.value = false
   }
 
+  /** 开启新对话：后端写入会话分隔标记并返回开场白 */
+  async function startNew(): Promise<boolean> {
+    error.value = ''
+    try {
+      const data = await startNewConversation()
+      messages.value = data.messages ?? []
+      historyLoaded.value = true
+      canSuggestTask.value = false
+      suggestedTask.value = null
+      return true
+    } catch (e) {
+      error.value = e instanceof Error ? e.message : '开启新对话失败'
+      return false
+    }
+  }
+
   function reset() {
     messages.value = []
     loading.value = false
@@ -73,6 +89,7 @@ export const useChatStore = defineStore('chat', () => {
     error,
     loadHistory,
     send,
+    startNew,
     attachTask,
     reset,
   }

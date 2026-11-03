@@ -36,16 +36,18 @@ withDefaults(
   flex-direction: column;
   align-items: center;
   text-align: center;
-  gap: 8px;
-  padding: 36px 20px;
-  border-radius: 24px;
-  background: rgba(255, 255, 255, 0.6);
-  border: 1.5px dashed rgba(143, 199, 238, 0.6);
+  gap: 6px;
+  padding: var(--sp-3) var(--sp-3);
+  border-radius: var(--radius-md);
+  background: var(--card);
+  border: 1px solid var(--hairline);
+  box-shadow: var(--elev-1);
+  backdrop-filter: blur(14px);
 }
 
 .empty-art svg {
-  width: 110px;
-  height: 82px;
+  width: 88px;
+  height: 66px;
 }
 
 .empty-state h3 {
@@ -54,12 +56,13 @@ withDefaults(
 }
 
 .empty-state p {
-  font-size: 13.5px;
+  font-size: 14px;
   font-weight: 600;
   max-width: 340px;
+  line-height: 1.6;
 }
 
-.empty-action {
-  margin-top: 10px;
+.empty-action:not(:empty) {
+  margin-top: var(--sp-2);
 }
 </style>

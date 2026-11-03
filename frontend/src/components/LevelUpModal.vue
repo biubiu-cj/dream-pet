@@ -66,11 +66,11 @@ const stageLabel = computed(() =>
   position: relative;
   width: min(400px, 94vw);
   padding: 34px 30px 30px;
-  border-radius: 32px;
+  border-radius: var(--radius-lg);
   text-align: center;
   background: linear-gradient(170deg, #fffdf7, #fff4e2);
   border: 2px solid rgba(255, 255, 255, 0.95);
-  box-shadow: 0 30px 80px rgba(60, 84, 120, 0.35);
+  box-shadow: var(--elev-3);
   overflow: hidden;
 }
 
@@ -113,7 +113,7 @@ const stageLabel = computed(() =>
 .stage-line {
   margin-top: 6px;
   font-weight: 800;
-  color: #b5892e;
+  color: #8a6620;
 }
 
 .xp-line {

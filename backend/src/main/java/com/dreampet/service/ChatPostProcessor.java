@@ -29,7 +29,10 @@ public class ChatPostProcessor {
 
     /** 只有包含个人信息/偏好/经历线索的消息才值得调用模型提取记忆，降低调用成本 */
     private static final java.util.regex.Pattern MEMORY_CANDIDATE = java.util.regex.Pattern.compile(
-            "我(喜欢|最爱|爱|想|要|希望|发现|看到|观察|学会|画|写|养|今天|昨天)|梦想|最怕|害怕|难过|开心|骄傲|朋友|老师|妈妈|爸爸|家人|学校");
+            // 兼容「我喜欢」「我很喜欢」「我特别喜欢」「我最近喜欢」等常见说法
+            "我.{0,3}(喜欢|爱|爱好|想|要|希望|发现|看到|观察|学会|画|写|养|迷上|今天|昨天)"
+                    + "|我对.{0,8}(感兴趣|好奇)"
+                    + "|梦想|最怕|害怕|难过|开心|骄傲|朋友|老师|妈妈|爸爸|家人|学校");
 
     @Async
     public void process(Long userId, Long petId, String petName, String userMessage, String assistantReply) {

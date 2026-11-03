@@ -10,6 +10,7 @@ const auth = useAuthStore()
 const mode = ref<'login' | 'register'>('login')
 const username = ref('')
 const password = ref('')
+const confirmPassword = ref('')
 const showPassword = ref(false)
 const submitting = ref(false)
 const error = ref('')
@@ -20,9 +21,15 @@ const submitText = computed(() =>
   submitting.value ? '正在进入…' : mode.value === 'login' ? '出发去冒险' : '创建我的账号',
 )
 
-function switchMode() {
-  mode.value = mode.value === 'login' ? 'register' : 'login'
+function setMode(next: 'login' | 'register') {
+  if (mode.value === next) return
+  mode.value = next
+  confirmPassword.value = ''
   error.value = ''
+}
+
+function switchMode() {
+  setMode(mode.value === 'login' ? 'register' : 'login')
 }
 
 async function afterAuth(hasPet: boolean) {
@@ -36,9 +43,19 @@ async function submit() {
     error.value = '先把名字和密码填好哦'
     return
   }
-  if (mode.value === 'register' && password.value.length < 6) {
-    error.value = '密码至少需要 6 位'
-    return
+  if (mode.value === 'register') {
+    if (password.value.length < 6) {
+      error.value = '密码至少需要 6 位'
+      return
+    }
+    if (!confirmPassword.value) {
+      error.value = '请再输入一次密码确认'
+      return
+    }
+    if (password.value !== confirmPassword.value) {
+      error.value = '两次输入的密码不一样，请再检查一下'
+      return
+    }
   }
   submitting.value = true
   try {
@@ -186,13 +203,13 @@ async function enterAsGuest() {
       <section class="auth-panel">
         <div class="auth-card">
           <div class="tabs" role="tablist">
-            <button :class="{ active: mode === 'login' }" role="tab" @click="mode = 'login'">登录</button>
-            <button :class="{ active: mode === 'register' }" role="tab" @click="mode = 'register'">注册</button>
+            <button :class="{ active: mode === 'login' }" role="tab" @click="setMode('login')">登录</button>
+            <button :class="{ active: mode === 'register' }" role="tab" @click="setMode('register')">注册</button>
           </div>
 
           <h2>{{ title }}</h2>
           <p class="auth-hint">
-            {{ mode === 'login' ? '输入你的名字，伙伴在等你。' : '起一个好记的名字，马上开始冒险。' }}
+            {{ mode === 'login' ? '输入你的名字，伙伴在等你。' : '起一个好记的名字，两次输入相同的密码。' }}
           </p>
 
           <form class="auth-form" @submit.prevent="submit">
@@ -242,6 +259,23 @@ async function enterAsGuest() {
                   <path d="M6.4 8.9A15.8 15.8 0 0 0 3.5 12s3 5.5 8.5 5.5c1.2 0 2.3-.3 3.3-.7" />
                 </svg>
               </button>
+            </label>
+
+            <label v-if="mode === 'register'" class="input-wrap">
+              <span class="input-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="5" y="10" width="14" height="10" rx="3" />
+                  <path d="M8.5 10V7.5a3.5 3.5 0 0 1 7 0V10" />
+                  <path d="M9.5 15l1.7 1.7 3.3-3.4" />
+                </svg>
+              </span>
+              <input
+                v-model="confirmPassword"
+                :type="showPassword ? 'text' : 'password'"
+                autocomplete="new-password"
+                placeholder="再输入一次密码"
+                maxlength="64"
+              />
             </label>
 
             <p v-if="error" class="error-text">{{ error }}</p>
